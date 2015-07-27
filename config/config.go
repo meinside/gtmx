@@ -52,11 +52,18 @@ func ReadAll() map[string]SessionConfig {
 	} else {
 		configFilepath := fmt.Sprintf("%s/%s", user.HomeDir, CONFIG_FILENAME)
 
-		if file, err := ioutil.ReadFile(configFilepath); err != nil {
-			fmt.Printf("* Failed to read config file (%s)\n", err)
-		} else {
-			if err := json.Unmarshal(file, &all); err != nil {
-				fmt.Printf("* Failed to parse config file (%s)\n", err)
+		// config file exists,
+		if _, err := os.Stat(configFilepath); err == nil {
+			if file, err := ioutil.ReadFile(configFilepath); err != nil {
+				fmt.Printf("* Failed to read config file (%s)\n", err)
+
+				os.Exit(1)
+			} else {
+				if err := json.Unmarshal(file, &all); err != nil {
+					fmt.Printf("* Failed to parse config file (%s)\n", err)
+
+					os.Exit(1)
+				}
 			}
 		}
 	}
