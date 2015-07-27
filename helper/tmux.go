@@ -9,6 +9,8 @@ import (
 )
 
 const (
+	DEFAULT_SESSION_NAME     = "tmux"
+	DEFAULT_WINDOW_NAME      = "new-window"
 	DEFAULT_SPLIT_PERCENTAGE = "50"
 )
 
@@ -16,10 +18,16 @@ type TmuxHelper struct {
 	SessionName string
 }
 
+/*
+	Create a new tmux helper
+*/
 func NewHelper() *TmuxHelper {
 	return new(TmuxHelper)
 }
 
+/*
+	Check if a session is created or not
+*/
 func IsSessionCreated(sessionName string) bool {
 	args := []string{
 		"has-session",
@@ -32,6 +40,9 @@ func IsSessionCreated(sessionName string) bool {
 	return false
 }
 
+/*
+	Check if a window is created or not
+*/
 func IsWindowCreated(sessionName string, windowName string) bool {
 	args := []string{
 		"list-windows",
@@ -46,6 +57,9 @@ func IsWindowCreated(sessionName string, windowName string) bool {
 	return false
 }
 
+/*
+	Start a session
+*/
 func (t *TmuxHelper) StartSession(sessionName string) bool {
 	// check if 'tmux' is installed on the machine,
 	if _, err := exec.LookPath("tmux"); err == nil {
@@ -53,6 +67,9 @@ func (t *TmuxHelper) StartSession(sessionName string) bool {
 			// new session
 			if output, err := exec.Command("hostname", "-s").CombinedOutput(); err == nil {
 				t.SessionName = strings.TrimSpace(string(output))
+			} else {
+				fmt.Printf("* Cannot get hostname, session name defaults to '%s'\n", DEFAULT_SESSION_NAME)
+				t.SessionName = DEFAULT_SESSION_NAME
 			}
 		} else {
 			// resume session
@@ -67,6 +84,9 @@ func (t *TmuxHelper) StartSession(sessionName string) bool {
 	return false
 }
 
+/*
+	Create a window
+*/
 func (t *TmuxHelper) CreateWindow(windowName string, command string) bool {
 	if t.SessionName != "" && IsSessionCreated(t.SessionName) {
 		args := []string{
@@ -78,7 +98,7 @@ func (t *TmuxHelper) CreateWindow(windowName string, command string) bool {
 			args = append(args, "-n", windowName)
 		}
 		if output, err := exec.Command("tmux", args...).CombinedOutput(); err == nil {
-			fmt.Printf("> Created a new window with name: %s\n", windowName)
+			fmt.Printf("> Created a new window named: %s\n", windowName)
 
 			if command != "" {
 				t.Command(windowName, "", command)
@@ -99,7 +119,7 @@ func (t *TmuxHelper) CreateWindow(windowName string, command string) bool {
 			"-d",
 		}
 		if output, err := exec.Command("tmux", args...).CombinedOutput(); err == nil {
-			fmt.Printf("> Created a new session with name: %s\n", t.SessionName)
+			fmt.Printf("> Created a new session named: %s\n", t.SessionName)
 		} else {
 			fmt.Printf("* Error creating a new session: %s (%s)\n", t.SessionName, strings.TrimSpace(string(output)))
 		}
@@ -107,6 +127,9 @@ func (t *TmuxHelper) CreateWindow(windowName string, command string) bool {
 	return false
 }
 
+/*
+	Execute a command on a window/pane
+*/
 func (t *TmuxHelper) Command(windowName string, paneName, command string) bool {
 	target := fmt.Sprintf("%s:%s", t.SessionName, windowName)
 	if paneName != "" {
@@ -127,6 +150,9 @@ func (t *TmuxHelper) Command(windowName string, paneName, command string) bool {
 	return true
 }
 
+/*
+	Focus on a window
+*/
 func (t *TmuxHelper) FocusWindow(windowName string) bool {
 	target := fmt.Sprintf("%s:%s", t.SessionName, windowName)
 	args := []string{
@@ -141,6 +167,9 @@ func (t *TmuxHelper) FocusWindow(windowName string) bool {
 	return true
 }
 
+/*
+	Focus on a pane
+*/
 func (t *TmuxHelper) FocusPane(paneName string) bool {
 	args := []string{
 		"select-pane",
@@ -154,6 +183,9 @@ func (t *TmuxHelper) FocusPane(paneName string) bool {
 	return true
 }
 
+/*
+	Split a window
+*/
 func (t *TmuxHelper) SplitWindow(windowName string, options map[string]string) bool {
 	args := []string{
 		"split-window",
@@ -188,6 +220,9 @@ func (t *TmuxHelper) SplitWindow(windowName string, options map[string]string) b
 	return true
 }
 
+/*
+	Attach to a session
+*/
 func (t *TmuxHelper) Attach() bool {
 	command := []string{
 		"tmux",

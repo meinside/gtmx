@@ -130,15 +130,26 @@ func main() {
 					helper.StartSession(sessionName)
 				}
 			} else {
-				fmt.Printf("> No matching predefined session, creating a new session: %s\n", sessionName)
-
 				helper.StartSession(sessionName)
+
+				if !tmux.IsSessionCreated(sessionName) {
+					fmt.Printf("> No matching predefined session, creating a new session: %s\n", sessionName)
+
+					helper.CreateWindow(tmux.DEFAULT_WINDOW_NAME, "")
+				} else {
+					fmt.Printf("> No matching predefined session, resuming session: %s\n", sessionName)
+				}
 			}
 		} else {
-			fmt.Printf("> Not using predefined session, creating a new session: %s\n", sessionName)
-
 			helper.StartSession(sessionName)
-			helper.CreateWindow("new-window", "")
+
+			if !tmux.IsSessionCreated(sessionName) {
+				fmt.Printf("> Not using predefined session, creating a new session: %s\n", sessionName)
+
+				helper.CreateWindow(tmux.DEFAULT_WINDOW_NAME, "")
+			} else {
+				fmt.Printf("> Not using predefined session, resuming session: %s\n", sessionName)
+			}
 		}
 
 		//attach
