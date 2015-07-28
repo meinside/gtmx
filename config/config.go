@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	CONFIG_FILENAME = ".gtmx.json" // config file's name
+	ConfigFilename = ".gtmx.json" // config file's name
 )
 
 type SessionConfig struct {
@@ -50,7 +50,7 @@ func ReadAll() map[string]SessionConfig {
 
 		os.Exit(1)
 	} else {
-		configFilepath := fmt.Sprintf("%s/%s", user.HomeDir, CONFIG_FILENAME)
+		configFilepath := fmt.Sprintf("%s/%s", user.HomeDir, ConfigFilename)
 
 		// config file exists,
 		if _, err := os.Stat(configFilepath); err == nil {

@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	DEFAULT_SESSION_NAME     = "tmux"
-	DEFAULT_WINDOW_NAME      = "new-window"
-	DEFAULT_SPLIT_PERCENTAGE = "50"
+	DefaultSessionName     = "tmux"
+	DefaultWindowName      = "new-window"
+	DefaultSplitPercentage = "50"
 )
 
 type TmuxHelper struct {
@@ -68,8 +68,8 @@ func (t *TmuxHelper) StartSession(sessionName string) bool {
 			if output, err := exec.Command("hostname", "-s").CombinedOutput(); err == nil {
 				t.SessionName = strings.TrimSpace(string(output))
 			} else {
-				fmt.Printf("* Cannot get hostname, session name defaults to '%s'\n", DEFAULT_SESSION_NAME)
-				t.SessionName = DEFAULT_SESSION_NAME
+				fmt.Printf("* Cannot get hostname, session name defaults to '%s'\n", DefaultSessionName)
+				t.SessionName = DefaultSessionName
 			}
 		} else {
 			// resume session
@@ -206,7 +206,7 @@ func (t *TmuxHelper) SplitWindow(windowName string, options map[string]string) b
 		}
 	} else {
 		args = append(args, "-v")
-		args = append(args, []string{"-p", DEFAULT_SPLIT_PERCENTAGE}...)
+		args = append(args, []string{"-p", DefaultSplitPercentage}...)
 	}
 	args = append(args, []string{
 		"-t",

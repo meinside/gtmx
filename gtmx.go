@@ -43,7 +43,7 @@ $ gtmx [SESSION_NAME]
 func generateConfig() {
 	sample := config.GetSampleConfigAsJSON()
 
-	fmt.Printf("> Sample config (save it as ~/%s)\n\n", config.CONFIG_FILENAME)
+	fmt.Printf("> Sample config (save it as ~/%s)\n\n", config.ConfigFilename)
 
 	fmt.Println(sample)
 
@@ -123,7 +123,7 @@ func main() {
 		if !tmux.IsSessionCreated(sessionName) {
 			fmt.Printf("> No matching predefined session, creating a new session: %s\n", sessionName)
 
-			helper.CreateWindow(tmux.DEFAULT_WINDOW_NAME, "")
+			helper.CreateWindow(tmux.DefaultWindowName, "")
 		} else {
 			fmt.Printf("> No matching predefined session, resuming session: %s\n", sessionName)
 		}
