@@ -63,18 +63,7 @@ func IsWindowCreated(sessionName string, windowName string) bool {
 func (t *TmuxHelper) StartSession(sessionName string) bool {
 	// check if 'tmux' is installed on the machine,
 	if _, err := exec.LookPath("tmux"); err == nil {
-		if sessionName == "" {
-			// new session
-			if output, err := exec.Command("hostname", "-s").CombinedOutput(); err == nil {
-				t.SessionName = strings.TrimSpace(string(output))
-			} else {
-				fmt.Printf("* Cannot get hostname, session name defaults to '%s'\n", DefaultSessionName)
-				t.SessionName = DefaultSessionName
-			}
-		} else {
-			// resume session
-			t.SessionName = sessionName
-		}
+		t.SessionName = sessionName
 
 		return true
 	} else {

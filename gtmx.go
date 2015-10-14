@@ -5,7 +5,9 @@ import (
 	config "github.com/meinside/gtmx/config"
 	tmux "github.com/meinside/gtmx/helper"
 	"os"
+	"os/exec"
 	"strconv"
+	"strings"
 )
 
 func paramExists(params []string, shortParam string, longParam string) bool {
@@ -50,6 +52,16 @@ func generateConfig() {
 	os.Exit(0)
 }
 
+func getDefaultSessionName() string {
+	// new session
+	if output, err := exec.Command("hostname", "-s").CombinedOutput(); err == nil {
+		return strings.TrimSpace(string(output))
+	} else {
+		fmt.Printf("* Cannot get hostname, session name defaults to '%s'\n", tmux.DefaultSessionName)
+		return tmux.DefaultSessionName
+	}
+}
+
 func main() {
 	params := os.Args[1:]
 
@@ -64,7 +76,7 @@ func main() {
 	if len(params) > 0 {
 		sessionName = params[0]
 	} else {
-		sessionName = ""
+		sessionName = getDefaultSessionName()
 	}
 
 	helper := tmux.NewHelper()
