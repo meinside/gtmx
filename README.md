@@ -12,14 +12,14 @@ $ go get -u github.com/meinside/gtmx
 
 ### 1. start a new session
 
-```
+```bash
 # will start a new session named as your hostname
 $ gtmx
 ```
 
 ### 2. resume a session
 
-```
+```bash
 # will resume a session with given name
 $ gtmx [SESSION_NAME]
 
@@ -35,7 +35,7 @@ You can predefine sessions in your config file. (at `~/.gtmx.conf`)
 
 If you need a sample config file,
 
-```
+```bash
 $ gtmx -g
 
 # or
@@ -46,13 +46,13 @@ it will be printed on the screen.
 
 #### start a session defined in the config file
 
-```
+```bash
 $ gtmx [SESSION_NAME]
 ```
 
 ## License
 
-Copyright (c) 2015 Sungjin Han
+Copyright (c) 2017 Sungjin Han
 
 MIT License
 

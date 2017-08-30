@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	config "github.com/meinside/gtmx/config"
-	tmux "github.com/meinside/gtmx/helper"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
+
+	config "github.com/meinside/gtmx/config"
+	tmux "github.com/meinside/gtmx/helper"
 )
 
 func paramExists(params []string, shortParam string, longParam string) bool {
