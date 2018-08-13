@@ -27,11 +27,15 @@ func NewHelper() *TmuxHelper {
 }
 
 // IsSessionCreated checks if a session is created or not
-func IsSessionCreated(sessionName string) bool {
+func IsSessionCreated(sessionName string, isVerbose bool) bool {
 	args := []string{
 		"has-session",
 		"-t",
 		sessionName,
+	}
+
+	if isVerbose {
+		fmt.Printf("[verbose] Checking is session created with command: tmux %s\n", strings.Join(args, " "))
 	}
 
 	if _, err := exec.Command("tmux", args...).CombinedOutput(); err == nil {
@@ -58,7 +62,7 @@ func (t *TmuxHelper) StartSession(sessionName string) bool {
 
 // CreateWindow creates a window
 func (t *TmuxHelper) CreateWindow(windowName, directory, command string) bool {
-	if t.SessionName != "" && IsSessionCreated(t.SessionName) {
+	if t.SessionName != "" && IsSessionCreated(t.SessionName, t.Verbose) {
 		args := []string{
 			"new-window",
 			"-t",

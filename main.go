@@ -116,7 +116,7 @@ func main() {
 			}
 		}
 
-		if !tmux.IsSessionCreated(session.Name) {
+		if !tmux.IsSessionCreated(session.Name, helper.Verbose) {
 			helper.StartSession(session.Name)
 
 			for _, window := range session.Windows {
@@ -127,11 +127,17 @@ func main() {
 				windowCommand := config.ReplaceString(window.Command)
 
 				// create window with given name and command
-				helper.CreateWindow(windowName, session.RootDir, windowCommand)
+				var dir string = window.Dir
+				if dir == "" {
+					dir = session.RootDir
+				} else {
+					dir = config.ReplaceString(dir)
+				}
+				helper.CreateWindow(windowName, dir, windowCommand)
 
 				// split panes
 				if window.Split.Percentage > 0 {
-					helper.SplitWindow(windowName, session.RootDir, map[string]string{
+					helper.SplitWindow(windowName, dir, map[string]string{
 						"vertical":   strconv.FormatBool(window.Split.Vertical),
 						"percentage": strconv.Itoa(window.Split.Percentage),
 					})
@@ -161,7 +167,7 @@ func main() {
 	} else {
 		helper.StartSession(sessionName)
 
-		if !tmux.IsSessionCreated(sessionName) {
+		if !tmux.IsSessionCreated(sessionName, helper.Verbose) {
 			fmt.Printf("> No matching predefined session, creating a new session: %s\n", sessionName)
 
 			helper.CreateWindow(tmux.DefaultWindowName, session.RootDir, "")
