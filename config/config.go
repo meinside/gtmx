@@ -11,37 +11,47 @@ import (
 	"strings"
 )
 
+// Constants
 const (
 	ConfigFilename = ".gtmx.json" // config file's name
 )
 
+// SessionConfig is a struct for session's configuration
 type SessionConfig struct {
-	SessionName string         `json:"session_name"`
-	Windows     []WindowConfig `json:"windows"`
-	Focus       FocusConfig    `json:"focus"`
-}
-type WindowConfig struct {
-	Name    string      `json:"name"`
-	Command string      `json:"cmd"`
-	Split   SplitConfig `json:"split"`
-}
-type SplitConfig struct {
-	Vertical   bool         `json:"vertical"`
-	Percentage int          `json:"percentage"`
-	Panes      []PaneConfig `json:"panes"`
-}
-type PaneConfig struct {
-	Pane    string `json:"pane"`
-	Command string `json:"cmd"`
-}
-type FocusConfig struct {
-	Name string `json:"name"`
-	Pane string `json:"pane"`
+	Name    string         `json:"name"`
+	RootDir string         `json:"root_dir,omitempty"`
+	Windows []WindowConfig `json:"windows,omitempty"`
+	Focus   FocusConfig    `json:"focus,omitempty"`
 }
 
-/*
-	Read all predefined session configs from file
-*/
+// WindowConfig is a struct for window's configuration
+type WindowConfig struct {
+	Name    string      `json:"name"`
+	Dir     string      `json:"dir,omitempty"`
+	Command string      `json:"cmd,omitempty"`
+	Split   SplitConfig `json:"split,omitempty"`
+}
+
+// SplitConfig is a struct for split's configuration
+type SplitConfig struct {
+	Vertical   bool         `json:"vertical,omitempty"`
+	Percentage int          `json:"percentage,omitempty"`
+	Panes      []PaneConfig `json:"panes,omitempty"`
+}
+
+// PaneConfig is a struct for pane's configuration
+type PaneConfig struct {
+	Pane    string `json:"pane"`
+	Command string `json:"cmd,omitempty"`
+}
+
+// FocusConfig is a struct for focus' configuration
+type FocusConfig struct {
+	Name string `json:"name"`
+	Pane string `json:"pane,omiempty"`
+}
+
+// ReadAll reads all predefined session configs from file
 func ReadAll() map[string]SessionConfig {
 	all := make(map[string]SessionConfig)
 
@@ -71,37 +81,35 @@ func ReadAll() map[string]SessionConfig {
 	return all
 }
 
-/*
-	Get sample config (for generating sample config file)
-*/
-func GetSampleConfig() map[string]SessionConfig {
+// getSampleConfig gets sample config (for generating sample config file)
+func getSampleConfig() map[string]SessionConfig {
 	sample := make(map[string]SessionConfig)
 
+	// (example 1) for rails application
 	sample["rails"] = SessionConfig{
-		SessionName: "%d",
+		Name: "rails-%d",
 		Windows: []WindowConfig{
 			{
 				Name: "console",
 			},
 			{
-				Name:    "models",
-				Command: "cd ./app/models; clear",
+				Name: "models",
+				Dir:  "%p/app/models/",
 			},
 			{
-				Name:    "views",
-				Command: "cd ./app/views; clear",
+				Name: "views",
+				Dir:  "%p/app/views/",
 			},
 			{
-				Name:    "controllers",
-				Command: "cd ./app/controllers; clear",
+				Name: "controllers",
+				Dir:  "%p/app/controllers/",
 			},
 			{
-				Name:    "configs",
-				Command: "cd ./config; clear",
+				Name: "configs",
+				Dir:  "%p/config/",
 			},
 			{
-				Name:    "server",
-				Command: "",
+				Name: "server",
 				Split: SplitConfig{
 					Vertical:   true,
 					Percentage: 50,
@@ -124,33 +132,65 @@ func GetSampleConfig() map[string]SessionConfig {
 		},
 	}
 
+	// (example 2) for this project
+	sample["gtmx"] = SessionConfig{
+		Name:    "gtmx",
+		RootDir: "/home/pi/go/src/github.com/meinside/gtmx",
+		Windows: []WindowConfig{
+			{
+				Name:    "git",
+				Command: "git status",
+			},
+			{
+				Name: "main",
+			},
+			{
+				Name:    "config",
+				Dir:     "%p/config/",
+				Command: "ls",
+			},
+			{
+				Name:    "helper",
+				Dir:     "%p/helper/",
+				Command: "ls",
+			},
+		},
+		Focus: FocusConfig{
+			Name: "main",
+		},
+	}
+
 	return sample
 }
 
-/*
-	Get sample config as JSON
-*/
+// GetSampleConfigAsJSON generates a sample config as JSON string
 func GetSampleConfigAsJSON() string {
-	sample := GetSampleConfig()
-	if b, err := json.MarshalIndent(sample, "", "    "); err == nil {
+	sample := getSampleConfig()
+	if b, err := json.MarshalIndent(sample, "", "  "); err == nil {
 		return string(b)
 	}
 	return "{}"
 }
 
-/*
-	Replace string with place holders
-
-	'%d' => current directory's name
-	'%h' => hostname of this machine
-*/
+// ReplaceString replaces a string with place holders
+//
+// '%d' => current directory's name
+// '%p' => current directory's path
+// '%h' => hostname of this machine
 func ReplaceString(str string) string {
 	replaced := str
 
-	// '%d' => current directory name
+	// '%d' => current directory's name
 	if strings.Contains(replaced, "%d") {
 		if dir, err := os.Getwd(); err == nil {
 			replaced = strings.Replace(replaced, "%d", filepath.Base(dir), -1)
+		}
+	}
+
+	// '%p' => current directory's path
+	if strings.Contains(replaced, "%p") {
+		if dir, err := os.Getwd(); err == nil {
+			replaced = strings.Replace(replaced, "%p", dir, -1)
 		}
 	}
 

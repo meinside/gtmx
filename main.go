@@ -35,6 +35,12 @@ $ gtmx -g
 $ gtmx --gen-config
 
 
+# show verbose messages (tmux commands)
+
+$ gtmx -v
+$ gtmx --verbose
+
+
 # start or resume (predefined) session
 
 $ gtmx [SESSION_NAME]
@@ -55,12 +61,14 @@ func generateConfig() {
 
 func getDefaultSessionName() string {
 	// new session
-	if output, err := exec.Command("hostname", "-s").CombinedOutput(); err == nil {
+	output, err := exec.Command("hostname", "-s").CombinedOutput()
+	if err == nil {
 		return strings.TrimSpace(string(output))
-	} else {
-		fmt.Printf("* Cannot get hostname, session name defaults to '%s'\n", tmux.DefaultSessionName)
-		return tmux.DefaultSessionName
 	}
+
+	fmt.Printf("* Cannot get hostname, session name defaults to '%s'\n", tmux.DefaultSessionName)
+
+	return tmux.DefaultSessionName
 }
 
 func main() {
@@ -82,16 +90,36 @@ func main() {
 
 	helper := tmux.NewHelper()
 
+	// check if verbose
+	if paramExists(params, "-v", "--verbose") {
+		helper.Verbose = true
+	}
+
 	configs := config.ReadAll()
-	if selected, ok := configs[sessionName]; ok {
+	if session, ok := configs[sessionName]; ok {
 		fmt.Printf("> Using predefined session: %s\n", sessionName)
 
-		selected.SessionName = config.ReplaceString(selected.SessionName)
+		session.Name = config.ReplaceString(session.Name)
 
-		if !tmux.IsSessionCreated(selected.SessionName) {
-			helper.StartSession(selected.SessionName)
+		if session.RootDir != "" {
+			fmt.Printf("> Session root directory: %s\n", session.RootDir)
 
-			for _, window := range selected.Windows {
+			_, err := os.Stat(session.RootDir)
+
+			if os.IsNotExist(err) {
+				fmt.Printf("* Directory does not exist: %s\n", session.RootDir)
+			} else {
+				// change directory to it,
+				if err := os.Chdir(session.RootDir); err != nil {
+					fmt.Printf("* Failed to change directory: %s\n", session.RootDir)
+				}
+			}
+		}
+
+		if !tmux.IsSessionCreated(session.Name, helper.Verbose) {
+			helper.StartSession(session.Name)
+
+			for _, window := range session.Windows {
 				// window name
 				windowName := config.ReplaceString(window.Name)
 
@@ -99,11 +127,17 @@ func main() {
 				windowCommand := config.ReplaceString(window.Command)
 
 				// create window with given name and command
-				helper.CreateWindow(windowName, windowCommand)
+				var dir string = window.Dir
+				if dir == "" {
+					dir = session.RootDir
+				} else {
+					dir = config.ReplaceString(dir)
+				}
+				helper.CreateWindow(windowName, dir, windowCommand)
 
 				// split panes
 				if window.Split.Percentage > 0 {
-					helper.SplitWindow(windowName, map[string]string{
+					helper.SplitWindow(windowName, dir, map[string]string{
 						"vertical":   strconv.FormatBool(window.Split.Vertical),
 						"percentage": strconv.Itoa(window.Split.Percentage),
 					})
@@ -114,9 +148,9 @@ func main() {
 			}
 
 			// focus window/pane
-			if selected.Focus.Name != "" {
-				focusedWindow := selected.Focus.Name
-				focusedPane := selected.Focus.Pane
+			if session.Focus.Name != "" {
+				focusedWindow := session.Focus.Name
+				focusedPane := session.Focus.Pane
 
 				if focusedWindow != "" {
 					helper.FocusWindow(focusedWindow)
@@ -133,10 +167,10 @@ func main() {
 	} else {
 		helper.StartSession(sessionName)
 
-		if !tmux.IsSessionCreated(sessionName) {
+		if !tmux.IsSessionCreated(sessionName, helper.Verbose) {
 			fmt.Printf("> No matching predefined session, creating a new session: %s\n", sessionName)
 
-			helper.CreateWindow(tmux.DefaultWindowName, "")
+			helper.CreateWindow(tmux.DefaultWindowName, session.RootDir, "")
 		} else {
 			fmt.Printf("> No matching predefined session, resuming session: %s\n", sessionName)
 		}
