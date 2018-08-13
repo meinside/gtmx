@@ -86,22 +86,23 @@ func getSampleConfig() map[string]SessionConfig {
 	sample := make(map[string]SessionConfig)
 
 	// (example 1) for rails application
+	// NOTE: This session should be started in a rails project directory.
 	sample["rails"] = SessionConfig{
-		Name: "rails-%d",
+		Name: "rails-%d", // name session with current directory name
 		Windows: []WindowConfig{
 			{
 				Name: "console",
 			},
 			{
 				Name: "models",
-				Dir:  "%p/app/models/",
+				Dir:  "%p/app/models/", // relative directory
 			},
 			{
 				Name: "views",
-				Dir:  "%p/app/views/",
+				Dir:  "%p/app/views/", // relative directory
 			},
 			{
-				Name: "controllers",
+				Name: "controllers", // relative directory
 				Dir:  "%p/app/controllers/",
 			},
 			{
@@ -110,7 +111,7 @@ func getSampleConfig() map[string]SessionConfig {
 			},
 			{
 				Name: "server",
-				Split: SplitConfig{
+				Split: SplitConfig{ // split into two panes and run commands
 					Vertical:   true,
 					Percentage: 50,
 					Panes: []PaneConfig{
@@ -127,15 +128,15 @@ func getSampleConfig() map[string]SessionConfig {
 			},
 		},
 		Focus: FocusConfig{
-			Name: "server",
-			Pane: "2",
+			Name: "server", // focus on the 'server' window
+			Pane: "2",      // and '2' pane
 		},
 	}
 
 	// (example 2) for this project
 	sample["gtmx"] = SessionConfig{
 		Name:    "gtmx",
-		RootDir: "/home/pi/go/src/github.com/meinside/gtmx",
+		RootDir: "/home/pi/go/src/github.com/meinside/gtmx", // absolute root directory
 		Windows: []WindowConfig{
 			{
 				Name:    "git",
@@ -146,17 +147,17 @@ func getSampleConfig() map[string]SessionConfig {
 			},
 			{
 				Name:    "config",
-				Dir:     "%p/config/",
+				Dir:     "%p/config/", // relative directory
 				Command: "ls",
 			},
 			{
 				Name:    "helper",
-				Dir:     "%p/helper/",
+				Dir:     "%p/helper/", // relative directory
 				Command: "ls",
 			},
 		},
 		Focus: FocusConfig{
-			Name: "main",
+			Name: "main", // focus on the 'main' window
 		},
 	}
 
