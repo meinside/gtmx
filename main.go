@@ -52,7 +52,7 @@ $ gtmx [SESSION_NAME]
 func generateConfig() {
 	sample := config.GetSampleConfigAsJSON()
 
-	fmt.Printf("> Sample config (save it as ~/%s)\n\n", config.ConfigFilename)
+	fmt.Printf("/* Sample config file (save it as ~/%s) */\n\n", config.ConfigFilename)
 
 	fmt.Println(sample)
 
