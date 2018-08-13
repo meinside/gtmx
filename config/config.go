@@ -11,37 +11,45 @@ import (
 	"strings"
 )
 
+// Constants
 const (
 	ConfigFilename = ".gtmx.json" // config file's name
 )
 
+// SessionConfig is a struct for session's configuration
 type SessionConfig struct {
 	SessionName string         `json:"session_name"`
 	Windows     []WindowConfig `json:"windows"`
 	Focus       FocusConfig    `json:"focus"`
 }
+
+// WindowConfig is a struct for window's configuration
 type WindowConfig struct {
 	Name    string      `json:"name"`
 	Command string      `json:"cmd"`
 	Split   SplitConfig `json:"split"`
 }
+
+// SplitConfig is a struct for split's configuration
 type SplitConfig struct {
 	Vertical   bool         `json:"vertical"`
 	Percentage int          `json:"percentage"`
 	Panes      []PaneConfig `json:"panes"`
 }
+
+// PaneConfig is a struct for pane's configuration
 type PaneConfig struct {
 	Pane    string `json:"pane"`
 	Command string `json:"cmd"`
 }
+
+// FocusConfig is a struct for focus' configuration
 type FocusConfig struct {
 	Name string `json:"name"`
 	Pane string `json:"pane"`
 }
 
-/*
-	Read all predefined session configs from file
-*/
+// ReadAll reads all predefined session configs from file
 func ReadAll() map[string]SessionConfig {
 	all := make(map[string]SessionConfig)
 
@@ -71,10 +79,8 @@ func ReadAll() map[string]SessionConfig {
 	return all
 }
 
-/*
-	Get sample config (for generating sample config file)
-*/
-func GetSampleConfig() map[string]SessionConfig {
+// getSampleConfig gets sample config (for generating sample config file)
+func getSampleConfig() map[string]SessionConfig {
 	sample := make(map[string]SessionConfig)
 
 	sample["rails"] = SessionConfig{
@@ -127,23 +133,19 @@ func GetSampleConfig() map[string]SessionConfig {
 	return sample
 }
 
-/*
-	Get sample config as JSON
-*/
+// GetSampleConfigAsJSON generates a sample config as JSON string
 func GetSampleConfigAsJSON() string {
-	sample := GetSampleConfig()
+	sample := getSampleConfig()
 	if b, err := json.MarshalIndent(sample, "", "    "); err == nil {
 		return string(b)
 	}
 	return "{}"
 }
 
-/*
-	Replace string with place holders
-
-	'%d' => current directory's name
-	'%h' => hostname of this machine
-*/
+// ReplaceString replaces a string with place holders
+//
+// '%d' => current directory's name
+// '%h' => hostname of this machine
 func ReplaceString(str string) string {
 	replaced := str
 

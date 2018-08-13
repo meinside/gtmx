@@ -55,12 +55,14 @@ func generateConfig() {
 
 func getDefaultSessionName() string {
 	// new session
-	if output, err := exec.Command("hostname", "-s").CombinedOutput(); err == nil {
+	output, err := exec.Command("hostname", "-s").CombinedOutput()
+	if err == nil {
 		return strings.TrimSpace(string(output))
-	} else {
-		fmt.Printf("* Cannot get hostname, session name defaults to '%s'\n", tmux.DefaultSessionName)
-		return tmux.DefaultSessionName
 	}
+
+	fmt.Printf("* Cannot get hostname, session name defaults to '%s'\n", tmux.DefaultSessionName)
+
+	return tmux.DefaultSessionName
 }
 
 func main() {
