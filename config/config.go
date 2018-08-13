@@ -18,9 +18,10 @@ const (
 
 // SessionConfig is a struct for session's configuration
 type SessionConfig struct {
-	SessionName string         `json:"session_name"`
-	Windows     []WindowConfig `json:"windows"`
-	Focus       FocusConfig    `json:"focus"`
+	Name    string         `json:"name"`
+	RootDir string         `json:"root_dir"`
+	Windows []WindowConfig `json:"windows"`
+	Focus   FocusConfig    `json:"focus"`
 }
 
 // WindowConfig is a struct for window's configuration
@@ -83,8 +84,10 @@ func ReadAll() map[string]SessionConfig {
 func getSampleConfig() map[string]SessionConfig {
 	sample := make(map[string]SessionConfig)
 
+	// (example 1) for rails application
 	sample["rails"] = SessionConfig{
-		SessionName: "%d",
+		Name:    "%d",
+		RootDir: "",
 		Windows: []WindowConfig{
 			{
 				Name: "console",
@@ -136,7 +139,7 @@ func getSampleConfig() map[string]SessionConfig {
 // GetSampleConfigAsJSON generates a sample config as JSON string
 func GetSampleConfigAsJSON() string {
 	sample := getSampleConfig()
-	if b, err := json.MarshalIndent(sample, "", "    "); err == nil {
+	if b, err := json.MarshalIndent(sample, "", "  "); err == nil {
 		return string(b)
 	}
 	return "{}"
