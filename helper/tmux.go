@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"syscall"
 )
@@ -12,7 +13,7 @@ import (
 const (
 	DefaultSessionName     = "tmux"
 	DefaultWindowName      = "new-window"
-	DefaultSplitPercentage = "50"
+	DefaultSplitPercentage = 50
 )
 
 // TmuxHelper is a helper for tmux tasks
@@ -211,7 +212,17 @@ func (t *TmuxHelper) SplitWindow(windowName, directory string, options map[strin
 
 		// split percentage
 		if option, ok := options["percentage"]; ok {
-			args = append(args, []string{"-p", option}...)
+			percent, err := strconv.Atoi(option)
+
+			if err == nil {
+				if percent < 10 || percent > 90 {
+					percent = DefaultSplitPercentage
+				}
+			} else {
+				percent = DefaultSplitPercentage
+			}
+
+			args = append(args, []string{"-p", strconv.Itoa(percent)}...)
 		}
 
 		// target pane
@@ -220,7 +231,7 @@ func (t *TmuxHelper) SplitWindow(windowName, directory string, options map[strin
 		}
 	} else {
 		args = append(args, "-v")
-		args = append(args, []string{"-p", DefaultSplitPercentage}...)
+		args = append(args, []string{"-p", strconv.Itoa(DefaultSplitPercentage)}...)
 	}
 
 	args = append(args, []string{
