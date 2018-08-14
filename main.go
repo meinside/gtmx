@@ -81,19 +81,22 @@ func main() {
 		generateConfig()
 	}
 
+	// check if verbose
+	var isVerbose = paramExists(params, "-v", "--verbose")
+
 	var sessionName string
-	if len(params) > 0 {
-		sessionName = params[0]
-	} else {
+	for _, param := range params {
+		if !strings.HasPrefix(param, "-") {
+			sessionName = param
+			continue
+		}
+	}
+	if sessionName == "" {
 		sessionName = getDefaultSessionName()
 	}
 
 	helper := tmux.NewHelper()
-
-	// check if verbose
-	if paramExists(params, "-v", "--verbose") {
-		helper.Verbose = true
-	}
+	helper.Verbose = isVerbose
 
 	configs := config.ReadAll()
 	if session, ok := configs[sessionName]; ok {
