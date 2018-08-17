@@ -89,7 +89,8 @@ func getSampleConfig() map[string]SessionConfig {
 	// (example 1) for rails application
 	// NOTE: This session should be started in a rails project directory.
 	sample["rails"] = SessionConfig{
-		Name: "rails-%d", // name session with current directory name
+		Name:        "rails-%d", // name session with current directory name
+		Description: "predefined session for rails applications",
 		Windows: []WindowConfig{
 			{
 				Name: "console",
@@ -136,8 +137,9 @@ func getSampleConfig() map[string]SessionConfig {
 
 	// (example 2) for this project
 	sample["gtmx"] = SessionConfig{
-		Name:    "gtmx",
-		RootDir: "/home/pi/go/src/github.com/meinside/gtmx", // absolute root directory
+		Name:        "gtmx",
+		Description: "predefined session for gtmx development",
+		RootDir:     "/home/pi/go/src/github.com/meinside/gtmx", // absolute root directory
 		Windows: []WindowConfig{
 			{
 				Name:    "git",
