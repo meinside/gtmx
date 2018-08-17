@@ -50,6 +50,15 @@ it will be printed on the screen.
 $ gtmx [SESSION_NAME]
 ```
 
+### 4. list predefined/running sessions
+
+```bash
+$ gtmx -l
+
+# or
+$ gtmx --list
+```
+
 ## License
 
 Copyright (c) 2018 Sungjin Han
