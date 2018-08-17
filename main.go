@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	config "github.com/meinside/gtmx/config"
-	tmux "github.com/meinside/gtmx/helper"
+	"github.com/meinside/gtmx/config"
+	"github.com/meinside/gtmx/helper"
 )
 
 func paramExists(params []string, shortParam string, longParam string) bool {
@@ -20,10 +20,11 @@ func paramExists(params []string, shortParam string, longParam string) bool {
 	return false
 }
 
-func printUsage() {
-	fmt.Printf(`> Usage
+func printUsageAndExit() {
+	fmt.Printf(`
+> Usage
 
-# show this help message
+# print this help message
 
 $ gtmx -h
 $ gtmx --help
@@ -41,6 +42,12 @@ $ gtmx -v
 $ gtmx --verbose
 
 
+# list predefined or running sessions
+
+$ gtmx -l
+$ gtmx --list
+
+
 # start or resume (predefined) session
 
 $ gtmx [SESSION_NAME]
@@ -49,7 +56,7 @@ $ gtmx [SESSION_NAME]
 	os.Exit(0)
 }
 
-func generateConfig() {
+func printConfigAndExit() {
 	sample := config.GetSampleConfigAsJSON()
 
 	fmt.Printf("/* Sample config file (save it as ~/%s) */\n\n", config.ConfigFilename)
@@ -66,24 +73,31 @@ func getDefaultSessionName() string {
 		return strings.TrimSpace(string(output))
 	}
 
-	fmt.Printf("* Cannot get hostname, session name defaults to '%s'\n", tmux.DefaultSessionName)
+	fmt.Printf("* Cannot get hostname, session name defaults to '%s'\n", helper.DefaultSessionName)
 
-	return tmux.DefaultSessionName
+	return helper.DefaultSessionName
 }
 
 func main() {
 	params := os.Args[1:]
 
-	// check params
-	if paramExists(params, "-h", "--help") {
-		printUsage()
-	} else if paramExists(params, "-g", "--gen-config") {
-		generateConfig()
-	}
-
-	// check if verbose
+	// check if verbose option is on
 	var isVerbose = paramExists(params, "-v", "--verbose")
 
+	// check params
+	if paramExists(params, "-h", "--help") {
+		printUsageAndExit()
+	} else if paramExists(params, "-g", "--gen-config") {
+		printConfigAndExit()
+	} else if paramExists(params, "-l", "--list") {
+		printSessionsAndExit(isVerbose)
+	}
+
+	// run with params
+	run(isVerbose, params)
+}
+
+func run(isVerbose bool, params []string) {
 	var sessionName string
 	for _, param := range params {
 		if !strings.HasPrefix(param, "-") {
@@ -95,10 +109,11 @@ func main() {
 		sessionName = getDefaultSessionName()
 	}
 
-	helper := tmux.NewHelper()
-	helper.Verbose = isVerbose
+	tmux := helper.NewHelper()
+	tmux.Verbose = isVerbose
 
 	configs := config.ReadAll()
+
 	if session, ok := configs[sessionName]; ok {
 		fmt.Printf("> Using predefined session: %s\n", sessionName)
 
@@ -119,8 +134,8 @@ func main() {
 			}
 		}
 
-		if !tmux.IsSessionCreated(session.Name, helper.Verbose) {
-			helper.StartSession(session.Name)
+		if !helper.IsSessionCreated(session.Name, tmux.Verbose) {
+			tmux.StartSession(session.Name)
 
 			for _, window := range session.Windows {
 				// window name
@@ -136,16 +151,16 @@ func main() {
 				} else {
 					dir = config.ReplaceString(dir)
 				}
-				helper.CreateWindow(windowName, dir, windowCommand)
+				tmux.CreateWindow(windowName, dir, windowCommand)
 
 				// split panes
 				if window.Split.Percentage > 0 {
-					helper.SplitWindow(windowName, dir, map[string]string{
+					tmux.SplitWindow(windowName, dir, map[string]string{
 						"vertical":   strconv.FormatBool(window.Split.Vertical),
 						"percentage": strconv.Itoa(window.Split.Percentage),
 					})
 					for _, pane := range window.Split.Panes {
-						helper.Command(windowName, pane.Pane, config.ReplaceString(pane.Command))
+						tmux.Command(windowName, pane.Pane, config.ReplaceString(pane.Command))
 					}
 				}
 			}
@@ -156,29 +171,61 @@ func main() {
 				focusedPane := session.Focus.Pane
 
 				if focusedWindow != "" {
-					helper.FocusWindow(focusedWindow)
+					tmux.FocusWindow(focusedWindow)
 					if focusedPane != "" {
-						helper.FocusPane(focusedPane)
+						tmux.FocusPane(focusedPane)
 					}
 				}
 			}
 		} else {
 			fmt.Printf("> Resuming session: %s\n", sessionName)
 
-			helper.StartSession(sessionName)
+			tmux.StartSession(sessionName)
 		}
 	} else {
-		helper.StartSession(sessionName)
+		tmux.StartSession(sessionName)
 
-		if !tmux.IsSessionCreated(sessionName, helper.Verbose) {
+		if !helper.IsSessionCreated(sessionName, tmux.Verbose) {
 			fmt.Printf("> No matching predefined session, creating a new session: %s\n", sessionName)
 
-			helper.CreateWindow(tmux.DefaultWindowName, session.RootDir, "")
+			tmux.CreateWindow(helper.DefaultWindowName, session.RootDir, "")
 		} else {
 			fmt.Printf("> No matching predefined session, resuming session: %s\n", sessionName)
 		}
 	}
 
 	//attach
-	helper.Attach()
+	tmux.Attach()
+}
+
+func printSessionsAndExit(isVerbose bool) {
+	// predefined sessions
+	fmt.Println()
+	if confs := config.ReadAll(); len(confs) > 0 {
+		fmt.Printf("> All predefined sessions:\n")
+
+		for name, conf := range confs {
+			if len(conf.Description) > 0 {
+				fmt.Printf(" - %s (%s)\n", name, conf.Description)
+			} else {
+				fmt.Printf(" - %s\n", name)
+			}
+		}
+	} else {
+		fmt.Printf("> No predefined sessions.\n")
+	}
+
+	// running sessions
+	fmt.Println()
+	if sessions := helper.ListSessions(isVerbose); len(sessions) > 0 {
+		fmt.Printf("> All running sessions:\n")
+
+		for _, session := range sessions {
+			fmt.Printf(" - %s\n", session)
+		}
+	} else {
+		fmt.Printf("> No running sessions.\n")
+	}
+
+	os.Exit(0)
 }

@@ -18,10 +18,11 @@ const (
 
 // SessionConfig is a struct for session's configuration
 type SessionConfig struct {
-	Name    string         `json:"name"`
-	RootDir string         `json:"root_dir,omitempty"`
-	Windows []WindowConfig `json:"windows,omitempty"`
-	Focus   FocusConfig    `json:"focus,omitempty"`
+	Name        string         `json:"name"`
+	Description string         `json:"description,omitempty"`
+	RootDir     string         `json:"root_dir,omitempty"`
+	Windows     []WindowConfig `json:"windows,omitempty"`
+	Focus       FocusConfig    `json:"focus,omitempty"`
 }
 
 // WindowConfig is a struct for window's configuration
