@@ -46,6 +46,23 @@ func IsSessionCreated(sessionName string, isVerbose bool) bool {
 	return false
 }
 
+// ListSessions list running sessions
+func ListSessions(isVerbose bool) []string {
+	args := []string{
+		"ls",
+	}
+
+	if isVerbose {
+		fmt.Printf("[verbose] List running sessions with command: tmux %s\n", strings.Join(args, " "))
+	}
+
+	if output, err := exec.Command("tmux", args...).CombinedOutput(); err == nil {
+		return strings.Split(strings.TrimSpace(string(output)), "\n")
+	}
+
+	return []string{}
+}
+
 // StartSession starts a session
 func (t *TmuxHelper) StartSession(sessionName string) bool {
 	// check if 'tmux' is installed on the machine,
