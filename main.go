@@ -48,9 +48,9 @@ $ gtmx -l
 $ gtmx --list
 
 
-# start or resume (predefined) session
+# start or resume a (predefined) session with/without given key
 
-$ gtmx [SESSION_NAME]
+$ gtmx [SESSION_KEY]
 `)
 
 	os.Exit(0)
@@ -66,16 +66,16 @@ func printConfigAndExit() {
 	os.Exit(0)
 }
 
-func getDefaultSessionName() string {
-	// new session
+func getDefaultSessionKey() string {
+	// get hostname
 	output, err := exec.Command("hostname", "-s").CombinedOutput()
 	if err == nil {
 		return strings.TrimSpace(string(output))
 	}
 
-	fmt.Printf("* Cannot get hostname, session name defaults to '%s'\n", helper.DefaultSessionName)
+	fmt.Printf("* Cannot get hostname, session key defaults to '%s'\n", helper.DefaultSessionKey)
 
-	return helper.DefaultSessionName
+	return helper.DefaultSessionKey
 }
 
 func main() {
@@ -94,19 +94,19 @@ func main() {
 	}
 
 	// run with params
-	run(isVerbose, params)
+	run(params, isVerbose)
 }
 
-func run(isVerbose bool, params []string) {
-	var sessionName string
+func run(params []string, isVerbose bool) {
+	var sessionKey string
 	for _, param := range params {
 		if !strings.HasPrefix(param, "-") {
-			sessionName = param
+			sessionKey = param
 			continue
 		}
 	}
-	if sessionName == "" {
-		sessionName = getDefaultSessionName()
+	if sessionKey == "" {
+		sessionKey = getDefaultSessionKey()
 	}
 
 	tmux := helper.NewHelper()
@@ -114,10 +114,12 @@ func run(isVerbose bool, params []string) {
 
 	configs := config.ReadAll()
 
-	if session, ok := configs[sessionName]; ok {
-		fmt.Printf("> Using predefined session: %s\n", sessionName)
+	if session, ok := configs[sessionKey]; ok {
+		fmt.Printf("> Using predefined session with key: %s\n", sessionKey)
 
 		session.Name = config.ReplaceString(session.Name)
+
+		fmt.Printf("> Using session name: %s\n", session.Name)
 
 		if session.RootDir != "" {
 			fmt.Printf("> Session root directory: %s\n", session.RootDir)
@@ -178,11 +180,14 @@ func run(isVerbose bool, params []string) {
 				}
 			}
 		} else {
-			fmt.Printf("> Resuming session: %s\n", sessionName)
+			fmt.Printf("> Resuming session: %s\n", session.Name)
 
-			tmux.StartSession(sessionName)
+			tmux.StartSession(session.Name)
 		}
 	} else {
+		// use session key as a session name
+		sessionName := sessionKey
+
 		tmux.StartSession(sessionName)
 
 		if !helper.IsSessionCreated(sessionName, tmux.Verbose) {

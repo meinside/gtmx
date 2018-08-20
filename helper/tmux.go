@@ -11,7 +11,7 @@ import (
 
 // Constants
 const (
-	DefaultSessionName     = "tmux"
+	DefaultSessionKey      = "tmux"
 	DefaultWindowName      = "new-window"
 	DefaultSplitPercentage = 50
 )
