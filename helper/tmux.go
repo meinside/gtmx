@@ -223,7 +223,7 @@ func (t *TmuxHelper) SplitWindow(windowName, directory string, options map[strin
 
 	if options != nil {
 		// vertical split
-		if _, ok := options["vertical"]; ok {
+		if v, exists := options["vertical"]; exists && v == "true" {
 			args = append(args, "-h")
 		}
 
