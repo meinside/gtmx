@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strconv"
@@ -10,6 +10,10 @@ import (
 	"github.com/meinside/gtmx/config"
 	"github.com/meinside/gtmx/helper"
 )
+
+// loggers
+var _stdout = log.New(os.Stdout, "", 0)
+var _stderr = log.New(os.Stderr, "", 0)
 
 func paramExists(params []string, shortParam string, longParam string) bool {
 	for _, param := range params {
@@ -21,8 +25,8 @@ func paramExists(params []string, shortParam string, longParam string) bool {
 }
 
 func printUsageAndExit() {
-	fmt.Printf(`
-> Usage
+	_stdout.Printf(`
+> usage
 
 # print this help message
 
@@ -59,9 +63,9 @@ $ gtmx [SESSION_KEY]
 func printConfigAndExit() {
 	sample := config.GetSampleConfigAsJSON()
 
-	fmt.Printf("/* Sample config file (save it as ~/%s) */\n\n", config.ConfigFilename)
+	_stdout.Printf("/* sample config file (save it as ~/%s) */\n\n", config.ConfigFilename)
 
-	fmt.Println(sample)
+	_stdout.Println(sample)
 
 	os.Exit(0)
 }
@@ -73,7 +77,7 @@ func getDefaultSessionKey() string {
 		return strings.TrimSpace(string(output))
 	}
 
-	fmt.Printf("* Cannot get hostname, session key defaults to '%s'\n", helper.DefaultSessionKey)
+	_stderr.Printf("* cannot get hostname, session key defaults to '%s'\n", helper.DefaultSessionKey)
 
 	return helper.DefaultSessionKey
 }
@@ -115,23 +119,23 @@ func run(params []string, isVerbose bool) {
 	configs := config.ReadAll()
 
 	if session, ok := configs[sessionKey]; ok {
-		fmt.Printf("> Using predefined session with key: %s\n", sessionKey)
+		_stdout.Printf("> using predefined session with key: %s\n", sessionKey)
 
 		session.Name = config.ReplaceString(session.Name)
 
-		fmt.Printf("> Using session name: %s\n", session.Name)
+		_stdout.Printf("> using session name: %s\n", session.Name)
 
 		if session.RootDir != "" {
-			fmt.Printf("> Session root directory: %s\n", session.RootDir)
+			_stdout.Printf("> session root directory: %s\n", session.RootDir)
 
 			_, err := os.Stat(session.RootDir)
 
 			if os.IsNotExist(err) {
-				fmt.Printf("* Directory does not exist: %s\n", session.RootDir)
+				_stderr.Printf("* directory does not exist: %s\n", session.RootDir)
 			} else {
 				// change directory to it,
 				if err := os.Chdir(session.RootDir); err != nil {
-					fmt.Printf("* Failed to change directory: %s\n", session.RootDir)
+					_stderr.Printf("* failed to change directory: %s\n", session.RootDir)
 				}
 			}
 		}
@@ -180,7 +184,7 @@ func run(params []string, isVerbose bool) {
 				}
 			}
 		} else {
-			fmt.Printf("> Resuming session: %s\n", session.Name)
+			_stdout.Printf("> resuming session: %s\n", session.Name)
 
 			tmux.StartSession(session.Name)
 		}
@@ -191,11 +195,11 @@ func run(params []string, isVerbose bool) {
 		tmux.StartSession(sessionName)
 
 		if !helper.IsSessionCreated(sessionName, tmux.Verbose) {
-			fmt.Printf("> No matching predefined session, creating a new session: %s\n", sessionName)
+			_stdout.Printf("> no matching predefined session, creating a new session: %s\n", sessionName)
 
 			tmux.CreateWindow(helper.DefaultWindowName, session.RootDir, "")
 		} else {
-			fmt.Printf("> No matching predefined session, resuming session: %s\n", sessionName)
+			_stdout.Printf("> no matching predefined session, resuming session: %s\n", sessionName)
 		}
 	}
 
@@ -205,31 +209,31 @@ func run(params []string, isVerbose bool) {
 
 func printSessionsAndExit(isVerbose bool) {
 	// predefined sessions
-	fmt.Println()
+	_stdout.Println()
 	if confs := config.ReadAll(); len(confs) > 0 {
-		fmt.Printf("> All predefined sessions:\n")
+		_stdout.Printf("> all predefined sessions:\n")
 
 		for name, conf := range confs {
 			if len(conf.Description) > 0 {
-				fmt.Printf(" - %s (%s)\n", name, conf.Description)
+				_stdout.Printf(" - %s (%s)\n", name, conf.Description)
 			} else {
-				fmt.Printf(" - %s\n", name)
+				_stdout.Printf(" - %s\n", name)
 			}
 		}
 	} else {
-		fmt.Printf("> No predefined sessions.\n")
+		_stdout.Printf("> no predefined sessions.\n")
 	}
 
 	// running sessions
-	fmt.Println()
+	_stdout.Println()
 	if sessions := helper.ListSessions(isVerbose); len(sessions) > 0 {
-		fmt.Printf("> All running sessions:\n")
+		_stdout.Printf("> all running sessions:\n")
 
 		for _, session := range sessions {
-			fmt.Printf(" - %s\n", session)
+			_stdout.Printf(" - %s\n", session)
 		}
 	} else {
-		fmt.Printf("> No running sessions.\n")
+		_stdout.Printf("> no running sessions.\n")
 	}
 
 	os.Exit(0)
