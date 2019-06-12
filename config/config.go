@@ -4,12 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
 	"strings"
 )
+
+// logger
+var _stderr = log.New(os.Stderr, "", 0)
 
 // Constants
 const (
@@ -57,23 +61,17 @@ func ReadAll() map[string]SessionConfig {
 	all := make(map[string]SessionConfig)
 
 	if user, err := user.Current(); err != nil {
-		fmt.Printf("* Failed to get current user (%s)\n", err)
-
-		os.Exit(1)
+		_stderr.Fatalf("* failed to get current user (%s)\n", err)
 	} else {
 		configFilepath := fmt.Sprintf("%s/%s", user.HomeDir, ConfigFilename)
 
 		// config file exists,
 		if _, err := os.Stat(configFilepath); err == nil {
 			if file, err := ioutil.ReadFile(configFilepath); err != nil {
-				fmt.Printf("* Failed to read config file (%s)\n", err)
-
-				os.Exit(1)
+				_stderr.Fatalf("* failed to read config file (%s)\n", err)
 			} else {
 				if err := json.Unmarshal(file, &all); err != nil {
-					fmt.Printf("* Failed to parse config file (%s)\n", err)
-
-					os.Exit(1)
+					_stderr.Fatalf("* failed to parse config file (%s)\n", err)
 				}
 			}
 		}
