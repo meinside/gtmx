@@ -102,9 +102,9 @@ func PrintSessionsAndExit(isVerbose bool) {
 
 		for name, conf := range confs {
 			if len(conf.Description) > 0 {
-				_stdout.Printf(" - %s (%s)\n", name, conf.Description)
+				_stdout.Printf(" - %s: %s (%s)\n", name, conf.Name, conf.Description)
 			} else {
-				_stdout.Printf(" - %s\n", name)
+				_stdout.Printf(" - %s: %s\n", name, conf.Name)
 			}
 		}
 	} else {
