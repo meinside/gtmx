@@ -61,7 +61,7 @@ $ gtmx --list
 
 ## License
 
-Copyright (c) 2019 Sungjin Han
+Copyright (c) 2020 Sungjin Han
 
 MIT License
 

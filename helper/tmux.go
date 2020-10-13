@@ -2,23 +2,23 @@ package helper
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
-)
 
-// loggers
-var _stdout = log.New(os.Stdout, "", 0)
-var _stderr = log.New(os.Stderr, "", 0)
+	"github.com/meinside/gtmx/config"
+)
 
 // Constants
 const (
 	DefaultSessionKey      = "tmux"
 	DefaultWindowName      = "new-window"
 	DefaultSplitPercentage = 50
+
+	TmuxCommand = "tmux"
 )
 
 // TmuxHelper is a helper for tmux tasks
@@ -33,7 +33,7 @@ func NewHelper() *TmuxHelper {
 }
 
 // IsSessionCreated checks if a session is created or not
-func IsSessionCreated(sessionName string, isVerbose bool) bool {
+func IsSessionCreated(sessionName string, isVerbose bool) (bool, error) {
 	args := []string{
 		"has-session",
 		"-t",
@@ -44,15 +44,16 @@ func IsSessionCreated(sessionName string, isVerbose bool) bool {
 		_stdout.Printf("[verbose] checking if session is created with command: tmux %s\n", strings.Join(args, " "))
 	}
 
-	if _, err := exec.Command("tmux", args...).CombinedOutput(); err == nil {
-		return true
+	_, err := exec.Command(TmuxCommand, args...).CombinedOutput()
+	if err != nil {
+		return false, err
 	}
 
-	return false
+	return true, nil
 }
 
 // ListSessions list running sessions
-func ListSessions(isVerbose bool) []string {
+func ListSessions(isVerbose bool) (sessionLines []string, err error) {
 	args := []string{
 		"ls",
 	}
@@ -61,97 +62,121 @@ func ListSessions(isVerbose bool) []string {
 		_stdout.Printf("[verbose] list running sessions with command: tmux %s\n", strings.Join(args, " "))
 	}
 
-	if output, err := exec.Command("tmux", args...).CombinedOutput(); err == nil {
-		return strings.Split(strings.TrimSpace(string(output)), "\n")
+	output, err := exec.Command(TmuxCommand, args...).CombinedOutput()
+	if err == nil {
+		return strings.Split(strings.TrimSpace(string(output)), "\n"), nil
 	}
 
-	return []string{}
+	return []string{}, err
+}
+
+var _regexSessionName *regexp.Regexp = regexp.MustCompile(`(.*?): \d+ windows`)
+
+func sessionLineToKey(line string) string {
+	if matches := _regexSessionName.FindStringSubmatch(line); matches != nil && len(matches) >= 2 {
+		return strings.TrimSpace(matches[1])
+	}
+
+	return ""
+}
+
+// GetDefaultSessionKey returns the default session key
+func GetDefaultSessionKey() (string, error) {
+	// get hostname
+	output, err := exec.Command("hostname", "-s").CombinedOutput()
+	if err == nil {
+		return strings.TrimSpace(string(output)), nil
+	}
+
+	return DefaultSessionKey, fmt.Errorf("cannot get hostname, session key defaults to `%s` (%s)", DefaultSessionKey, err)
 }
 
 // StartSession starts a session
-func (t *TmuxHelper) StartSession(sessionName string) bool {
+func (t *TmuxHelper) StartSession(sessionName string) error {
 	// check if 'tmux' is installed on the machine,
-	if _, err := exec.LookPath("tmux"); err == nil {
+	_, err := exec.LookPath(TmuxCommand)
+	if err == nil {
 		t.SessionName = sessionName
-
-		return true
+		return nil
 	}
 
-	_stderr.Fatalf("* error finding 'tmux' on your system, please install it first.\n")
-
-	return false
+	return fmt.Errorf("`tmux` not found")
 }
 
 // CreateWindow creates a window
-func (t *TmuxHelper) CreateWindow(windowName, directory, command string) bool {
-	if t.SessionName != "" && IsSessionCreated(t.SessionName, t.Verbose) {
-		args := []string{
-			"new-window",
-			"-t",
-			t.SessionName,
-		}
-
-		if windowName != "" {
-			args = append(args, "-n", windowName)
-		}
-		if directory != "" {
-			args = append(args, "-c", directory)
-		}
-
-		if t.Verbose {
-			_stdout.Printf("[verbose] creating a new window with command: tmux %s\n", strings.Join(args, " "))
-		}
-
-		output, err := exec.Command("tmux", args...).CombinedOutput()
-		if err == nil {
-			_stdout.Printf("> created a new window named: %s\n", windowName)
-
-			if command != "" {
-				t.Command(windowName, "", command)
+func (t *TmuxHelper) CreateWindow(windowName, directory, command string) error {
+	if t.SessionName != "" {
+		if created, _ := IsSessionCreated(t.SessionName, t.Verbose); created {
+			args := []string{
+				"new-window",
+				"-t",
+				t.SessionName,
 			}
 
-			return true
-		}
-
-		_stderr.Printf("* error creating a window: %s (%s)\n", windowName, strings.TrimSpace(string(output)))
-	} else {
-		// create a new session
-		args := []string{
-			"new-session",
-			"-s",
-			t.SessionName,
-			"-n",
-			windowName,
-			"-d",
-		}
-
-		if directory != "" {
-			args = append(args, "-c", directory)
-		}
-
-		if t.Verbose {
-			_stdout.Printf("[verbose] creating a new session with command: tmux %s\n", strings.Join(args, " "))
-		}
-
-		output, err := exec.Command("tmux", args...).CombinedOutput()
-		if err == nil {
-			_stdout.Printf("> created a new session named: %s\n", t.SessionName)
-
-			if command != "" {
-				t.Command(windowName, "", command)
+			if windowName != "" {
+				args = append(args, "-n", windowName)
+			}
+			if directory != "" {
+				args = append(args, "-c", directory)
 			}
 
-			return true
-		}
+			if t.Verbose {
+				_stdout.Printf("[verbose] creating a new window with command: tmux %s\n", strings.Join(args, " "))
+			}
 
-		_stderr.Printf("* error creating a new session: %s (%s)\n", t.SessionName, strings.TrimSpace(string(output)))
+			output, err := exec.Command(TmuxCommand, args...).CombinedOutput()
+			if err == nil {
+				if t.Verbose {
+					_stdout.Printf("[verbose] created a new window named: %s\n", windowName)
+				}
+
+				if command != "" {
+					t.Command(windowName, "", command)
+				}
+
+				return nil
+			}
+
+			return fmt.Errorf("error creating a new window: %s (%s)", windowName, strings.TrimSpace(string(output)))
+		}
 	}
 
-	return false
+	// create a new session
+	args := []string{
+		"new-session",
+		"-s",
+		t.SessionName,
+		"-n",
+		windowName,
+		"-d",
+	}
+
+	if directory != "" {
+		args = append(args, "-c", directory)
+	}
+
+	if t.Verbose {
+		_stdout.Printf("[verbose] creating a new session with command: tmux %s\n", strings.Join(args, " "))
+	}
+
+	output, err := exec.Command(TmuxCommand, args...).CombinedOutput()
+	if err == nil {
+		if t.Verbose {
+			_stdout.Printf("[verbose] created a new session named: %s\n", t.SessionName)
+		}
+
+		if command != "" {
+			t.Command(windowName, "", command)
+		}
+
+		return nil
+	}
+
+	return fmt.Errorf("error creating a new session: %s (%s)", t.SessionName, strings.TrimSpace(string(output)))
 }
 
 // Command executes a command on a window/pane
-func (t *TmuxHelper) Command(windowName string, paneName, command string) bool {
+func (t *TmuxHelper) Command(windowName string, paneName, command string) error {
 	target := fmt.Sprintf("%s:%s", t.SessionName, windowName)
 	if paneName != "" {
 		target = fmt.Sprintf("%s.%s", target, paneName)
@@ -169,16 +194,15 @@ func (t *TmuxHelper) Command(windowName string, paneName, command string) bool {
 		_stdout.Printf("[verbose] executing command: tmux %s\n", strings.Join(args, " "))
 	}
 
-	if output, err := exec.Command("tmux", args...).CombinedOutput(); err != nil {
-		_stderr.Printf("* error executing command: %s (%s)\n", command, strings.TrimSpace(string(output)))
-		return false
+	if output, err := exec.Command(TmuxCommand, args...).CombinedOutput(); err != nil {
+		return fmt.Errorf("error executing command: %s (%s)", command, strings.TrimSpace(string(output)))
 	}
 
-	return true
+	return nil
 }
 
 // FocusWindow focuses on a window
-func (t *TmuxHelper) FocusWindow(windowName string) bool {
+func (t *TmuxHelper) FocusWindow(windowName string) error {
 	target := fmt.Sprintf("%s:%s", t.SessionName, windowName)
 	args := []string{
 		"select-window",
@@ -190,16 +214,15 @@ func (t *TmuxHelper) FocusWindow(windowName string) bool {
 		_stdout.Printf("[verbose] focusing window with command: tmux %s\n", strings.Join(args, " "))
 	}
 
-	if output, err := exec.Command("tmux", args...).CombinedOutput(); err != nil {
-		_stderr.Printf("* error focusing window: %s (%s)\n", windowName, strings.TrimSpace(string(output)))
-		return false
+	if output, err := exec.Command(TmuxCommand, args...).CombinedOutput(); err != nil {
+		return fmt.Errorf("error focusing window: %s (%s)", windowName, strings.TrimSpace(string(output)))
 	}
 
-	return true
+	return nil
 }
 
 // FocusPane focuses on a pane
-func (t *TmuxHelper) FocusPane(paneName string) bool {
+func (t *TmuxHelper) FocusPane(paneName string) error {
 	args := []string{
 		"select-pane",
 		"-t",
@@ -210,16 +233,15 @@ func (t *TmuxHelper) FocusPane(paneName string) bool {
 		_stdout.Printf("[verbose] focusing pane with command: tmux %s\n", strings.Join(args, " "))
 	}
 
-	if output, err := exec.Command("tmux", args...).CombinedOutput(); err != nil {
-		_stderr.Printf("* error focusing pane: %s (%s)\n", paneName, strings.TrimSpace(string(output)))
-		return false
+	if output, err := exec.Command(TmuxCommand, args...).CombinedOutput(); err != nil {
+		return fmt.Errorf("error focusing pane: %s (%s)", paneName, strings.TrimSpace(string(output)))
 	}
 
-	return true
+	return nil
 }
 
 // SplitWindow splits a window
-func (t *TmuxHelper) SplitWindow(windowName, directory string, options map[string]string) bool {
+func (t *TmuxHelper) SplitWindow(windowName, directory string, options map[string]string) error {
 	args := []string{
 		"split-window",
 	}
@@ -268,16 +290,15 @@ func (t *TmuxHelper) SplitWindow(windowName, directory string, options map[strin
 		_stdout.Printf("[verbose] splitting window with command: tmux %s\n", strings.Join(args, " "))
 	}
 
-	if output, err := exec.Command("tmux", args...).CombinedOutput(); err != nil {
-		_stderr.Printf("* error splitting window: %s (%s)\n", windowName, strings.TrimSpace(string(output)))
-		return false
+	if output, err := exec.Command(TmuxCommand, args...).CombinedOutput(); err != nil {
+		return fmt.Errorf("error splitting window: %s (%s)", windowName, strings.TrimSpace(string(output)))
 	}
 
-	return true
+	return nil
 }
 
 // Attach attaches to a session
-func (t *TmuxHelper) Attach() bool {
+func (t *TmuxHelper) Attach() error {
 	command := []string{
 		"tmux",
 		"attach",
@@ -285,7 +306,7 @@ func (t *TmuxHelper) Attach() bool {
 		t.SessionName,
 	}
 
-	path, err := exec.LookPath("tmux")
+	path, err := exec.LookPath(TmuxCommand)
 	if err == nil {
 		if t.Verbose {
 			_stdout.Printf("[verbose] attaching to a session with command: %s\n", strings.Join(command, " "))
@@ -293,11 +314,138 @@ func (t *TmuxHelper) Attach() bool {
 
 		err = syscall.Exec(path, command, syscall.Environ())
 		if err == nil {
-			return true
+			return nil
 		}
 	}
 
-	_stderr.Printf("* error attaching to session: %s (%s)\n", t.SessionName, err)
+	return fmt.Errorf("error attaching to session: %s (%s)", t.SessionName, err)
+}
 
-	return false
+// ConfigureAndAttachToSession configures up a session (if needed) and attaches to it
+func ConfigureAndAttachToSession(sessionKey string, isVerbose bool) (errors []error) {
+	tmux := NewHelper()
+	tmux.Verbose = isVerbose
+
+	configs := config.ReadAll()
+	errors = []error{}
+
+	if session, ok := configs[sessionKey]; ok {
+		if tmux.Verbose {
+			_stdout.Printf("[verbose] using predefined session with key: %s\n", sessionKey)
+		}
+
+		session.Name = config.ReplaceString(session.Name)
+
+		if tmux.Verbose {
+			_stdout.Printf("[verbose] using session name: %s\n", session.Name)
+		}
+
+		if session.RootDir != "" {
+			if tmux.Verbose {
+				_stdout.Printf("[verbose] session root directory: %s\n", session.RootDir)
+			}
+
+			_, err := os.Stat(session.RootDir)
+
+			if os.IsNotExist(err) {
+				errors = append(errors, fmt.Errorf("directory does not exist: %s", session.RootDir))
+			} else {
+				// change directory to it,
+				if err := os.Chdir(session.RootDir); err != nil {
+					errors = append(errors, fmt.Errorf("failed to change directory: %s", session.RootDir))
+				}
+			}
+		}
+
+		created, _ := IsSessionCreated(session.Name, tmux.Verbose)
+		if !created {
+			if err := tmux.StartSession(session.Name); err != nil {
+				errors = append(errors, err)
+			}
+
+			for _, window := range session.Windows {
+				// window name
+				windowName := config.ReplaceString(window.Name)
+
+				// window command
+				windowCommand := config.ReplaceString(window.Command)
+
+				// create window with given name and command
+				var dir string = window.Dir
+				if dir == "" {
+					dir = session.RootDir
+				} else {
+					dir = config.ReplaceString(dir)
+				}
+				if err := tmux.CreateWindow(windowName, dir, windowCommand); err != nil {
+					errors = append(errors, err)
+				}
+
+				// split panes
+				if window.Split.Percentage > 0 {
+					if err := tmux.SplitWindow(windowName, dir, map[string]string{
+						"vertical":   strconv.FormatBool(window.Split.Vertical),
+						"percentage": strconv.Itoa(window.Split.Percentage),
+					}); err != nil {
+						errors = append(errors, err)
+					}
+					for _, pane := range window.Split.Panes {
+						if err := tmux.Command(windowName, pane.Pane, config.ReplaceString(pane.Command)); err != nil {
+							errors = append(errors, err)
+						}
+					}
+				}
+			}
+
+			// focus window/pane
+			if session.Focus.Name != "" {
+				focusedWindow := session.Focus.Name
+				focusedPane := session.Focus.Pane
+
+				if focusedWindow != "" {
+					if err := tmux.FocusWindow(focusedWindow); err != nil {
+						errors = append(errors, err)
+					}
+					if focusedPane != "" {
+						if err := tmux.FocusPane(focusedPane); err != nil {
+							errors = append(errors, err)
+						}
+					}
+				}
+			}
+		} else {
+			if tmux.Verbose {
+				_stdout.Printf("[verbose] resuming session: %s\n", session.Name)
+			}
+
+			if err := tmux.StartSession(session.Name); err != nil {
+				errors = append(errors, err)
+			}
+		}
+	} else {
+		// use session key as a session name
+		sessionName := sessionKey
+
+		if err := tmux.StartSession(sessionName); err != nil {
+			errors = append(errors, err)
+		}
+
+		created, _ := IsSessionCreated(sessionName, tmux.Verbose)
+		if !created {
+			if tmux.Verbose {
+				_stdout.Printf("[verbose] no matching predefined session, creating a new session: %s\n", sessionName)
+			}
+
+			tmux.CreateWindow(DefaultWindowName, session.RootDir, "")
+		} else {
+			if tmux.Verbose {
+				_stdout.Printf("[verbose] no matching predefined session, resuming session: %s\n", sessionName)
+			}
+		}
+	}
+
+	//attach
+	tmux.Attach()
+
+	return errors
 }
