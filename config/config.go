@@ -84,11 +84,11 @@ func ReadAll() map[string]SessionConfig {
 func getSampleConfig() map[string]SessionConfig {
 	sample := make(map[string]SessionConfig)
 
-	// (example 1) for rails application
+	// (example 1) for rails projects
 	// NOTE: This session should be started in a rails project directory.
 	sample["rails"] = SessionConfig{
 		Name:        "rails-%d", // name session with current directory name
-		Description: "predefined session for rails applications",
+		Description: "predefined session for rails projects",
 		Windows: []WindowConfig{
 			{
 				Name: "console",
@@ -133,7 +133,64 @@ func getSampleConfig() map[string]SessionConfig {
 		},
 	}
 
-	// (example 2) for this project
+	// (example 2) for rust projects (created with rustup)
+	// NOTE: This session should be started in a rust project directory.
+	sample["rust"] = SessionConfig{
+		Name:        "rust-%d",
+		Description: "predefined session for rust projects",
+		Windows: []WindowConfig{
+			{
+				Name:    "root",
+				Command: "git status",
+			},
+			{
+				Name:    "src",
+				Dir:     "%p/src/", // relative directory
+				Command: "ls",
+			},
+		},
+		Focus: FocusConfig{
+			Name: "root", // focus on the 'root' window
+		},
+	}
+
+	// (example 3) for clojure projects (created with lein)
+	// NOTE: This session should be started in a clojure project directory.
+	sample["clojure"] = SessionConfig{
+		Name:        "clj-%d",
+		Description: "predefined session for clojure projects",
+		Windows: []WindowConfig{
+			{
+				Name:    "root",
+				Command: "git status",
+			},
+			{
+				Name:    "src",
+				Dir:     "%p/src/", // relative directory
+				Command: "ls",
+			},
+			{
+				Name:    "test",
+				Dir:     "%p/test/", // relative directory
+				Command: "ls",
+			},
+			{
+				Name:    "doc",
+				Dir:     "%p/doc/", // relative directory
+				Command: "ls",
+			},
+			{
+				Name:    "repl",
+				Dir:     "%p/", // relative directory
+				Command: "lein repl",
+			},
+		},
+		Focus: FocusConfig{
+			Name: "root", // focus on the 'root' window
+		},
+	}
+
+	// (example 4) for this project
 	sample["gtmx"] = SessionConfig{
 		Name:        "gtmx-dev",
 		Description: "predefined session for gtmx development",
