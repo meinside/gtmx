@@ -190,7 +190,28 @@ func getSampleConfig() map[string]SessionConfig {
 		},
 	}
 
-	// (example 4) for this project
+	// (example 4) for babashka scripts and conjure
+	sample["bb"] = SessionConfig{
+		Name:        "bb-%d",
+		Description: "predefined session for babashka scripts and conjure with nrepl connection",
+		Windows: []WindowConfig{
+			{
+				Name:    "nrepl",
+				Dir:     "%p/", // relative directory
+				Command: "echo `shuf -i 10000-50000 -n 1` > .nrepl-port && bb --nrepl-server `cat .nrepl-port`",
+			},
+			{
+				Name:    "scripts",
+				Dir:     "%p/", // relative directory
+				Command: "ls",
+			},
+		},
+		Focus: FocusConfig{
+			Name: "scripts", // focus on the 'scripts' window
+		},
+	}
+
+	// (example 5) for this project
 	sample["gtmx"] = SessionConfig{
 		Name:        "gtmx-dev",
 		Description: "predefined session for gtmx development",
