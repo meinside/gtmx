@@ -59,6 +59,15 @@ $ gtmx -l
 $ gtmx --list
 ```
 
+### 5. kill this session
+
+```bash
+$ gtmx -q
+
+# or
+$ gtmx --quit
+```
+
 ## License
 
 Copyright (c) 2020 Sungjin Han
