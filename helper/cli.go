@@ -46,6 +46,12 @@ $ gtmx -l
 $ gtmx --list
 
 
+# kill this session
+
+$ gtmx -q
+$ gtmx --quit
+
+
 # start or resume a (predefined) session with/without given key
 
 $ gtmx [SESSION_KEY]
@@ -130,4 +136,25 @@ func PrintSessionsAndExit(isVerbose bool) {
 	}
 
 	os.Exit(0)
+}
+
+// KillCurrentSession kills this session
+func KillCurrentSession() {
+	if !isInSession() {
+		_stderr.Printf("* not in a tmux session\n")
+		return
+	}
+
+	session, err := GetCurrentSessionName()
+	if err == nil {
+		err = KillSession(session)
+		if err == nil {
+			return
+		}
+
+		_stderr.Printf("* error killing session: %s (%s)\n", session, err)
+		return
+	}
+
+	_stderr.Printf("* %s\n", err)
 }

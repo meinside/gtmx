@@ -300,7 +300,7 @@ func (t *TmuxHelper) SplitWindow(windowName, directory string, options map[strin
 // Attach attaches to a session
 func (t *TmuxHelper) Attach() error {
 	command := []string{
-		"tmux",
+		TmuxCommand,
 		"attach",
 		"-t",
 		t.SessionName,
@@ -448,4 +448,50 @@ func ConfigureAndAttachToSession(sessionKey string, isVerbose bool) (errors []er
 	tmux.Attach()
 
 	return errors
+}
+
+func isInSession() bool {
+	env := os.Getenv("TMUX")
+
+	if strings.TrimSpace(env) != "" {
+		return true
+	}
+
+	return false
+}
+
+// GetCurrentSessionName returns current session's name
+func GetCurrentSessionName() (string, error) {
+	args := []string{
+		"display-message",
+		"-p",
+		"#S",
+	}
+
+	output, err := exec.Command(TmuxCommand, args...).CombinedOutput()
+	if err == nil {
+		return strings.TrimSpace(string(output)), nil
+	}
+
+	return "", fmt.Errorf("failed to get current session name: %s", err)
+}
+
+// KillSession kills a session with given name
+func KillSession(name string) error {
+	command := []string{
+		TmuxCommand,
+		"kill-session",
+		"-t",
+		name,
+	}
+
+	path, err := exec.LookPath(TmuxCommand)
+	if err == nil {
+		err = syscall.Exec(path, command, syscall.Environ())
+		if err == nil {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("error killing session: %s (%s)", name, err)
 }
