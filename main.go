@@ -19,6 +19,8 @@ func main() {
 		helper.PrintConfigAndExit()
 	} else if helper.ParamExists(params, "-l", "--list") {
 		helper.PrintSessionsAndExit(isVerbose)
+	} else if helper.ParamExists(params, "-q", "--quit") {
+		helper.KillCurrentSession()
 	} else {
 		helper.RunWithParams(params, isVerbose)
 	}
