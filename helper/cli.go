@@ -131,7 +131,7 @@ func PrintSessionsAndExit(isVerbose bool) {
 		_stdout.Printf("> no running sessions.\n")
 	}
 
-	if err != nil {
+	if isVerbose && err != nil {
 		_stderr.Printf("* %s\n", err)
 	}
 
