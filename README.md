@@ -17,10 +17,10 @@ $ go get -u github.com/meinside/gtmx
 $ gtmx
 ```
 
-### 2. resume a session
+### 2. resume or switch to a session
 
 ```bash
-# will resume a session with given name
+# will resume, or switch to a session with given name
 $ gtmx [SESSION_NAME]
 
 # if session name is not given, it will be your hostname
@@ -70,7 +70,7 @@ $ gtmx --quit
 
 ## License
 
-Copyright (c) 2020 Sungjin Han
+Copyright (c) 2021 Sungjin Han
 
 MIT License
 

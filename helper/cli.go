@@ -52,7 +52,7 @@ $ gtmx -q
 $ gtmx --quit
 
 
-# start or resume a (predefined) session with/without given key
+# start, resume, or switch to a (predefined) session with/without the given key
 
 $ gtmx [SESSION_KEY]
 `)
