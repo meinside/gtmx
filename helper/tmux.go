@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
@@ -70,16 +69,6 @@ func ListSessions(isVerbose bool) (sessionLines []string, err error) {
 	return []string{}, err
 }
 
-var _regexSessionName *regexp.Regexp = regexp.MustCompile(`(.*?): \d+ windows`)
-
-func sessionLineToKey(line string) string {
-	if matches := _regexSessionName.FindStringSubmatch(line); matches != nil && len(matches) >= 2 {
-		return strings.TrimSpace(matches[1])
-	}
-
-	return ""
-}
-
 // GetDefaultSessionKey returns the default session key
 func GetDefaultSessionKey() (string, error) {
 	// get hostname
@@ -131,7 +120,7 @@ func (t *TmuxHelper) CreateWindow(windowName, directory, command string) error {
 				}
 
 				if command != "" {
-					t.Command(windowName, "", command)
+					_ = t.Command(windowName, "", command)
 				}
 
 				return nil
@@ -166,7 +155,7 @@ func (t *TmuxHelper) CreateWindow(windowName, directory, command string) error {
 		}
 
 		if command != "" {
-			t.Command(windowName, "", command)
+			_ = t.Command(windowName, "", command)
 		}
 
 		return nil
@@ -451,7 +440,7 @@ func ConfigureAndAttachToSession(sessionKey string, isVerbose bool) (errors []er
 				_stdout.Printf("[verbose] no matching predefined session, creating a new session: %s\n", sessionName)
 			}
 
-			tmux.CreateWindow(DefaultWindowName, session.RootDir, "")
+			_ = tmux.CreateWindow(DefaultWindowName, session.RootDir, "")
 		} else {
 			if tmux.Verbose {
 				_stdout.Printf("[verbose] no matching predefined session, resuming/switching to session: %s\n", sessionName)
@@ -475,7 +464,7 @@ func ConfigureAndAttachToSession(sessionKey string, isVerbose bool) (errors []er
 	}
 
 	//attach
-	tmux.Attach()
+	_ = tmux.Attach()
 
 	return errors
 }
@@ -483,11 +472,7 @@ func ConfigureAndAttachToSession(sessionKey string, isVerbose bool) (errors []er
 func isInSession() bool {
 	env := os.Getenv("TMUX")
 
-	if strings.TrimSpace(env) != "" {
-		return true
-	}
-
-	return false
+	return strings.TrimSpace(env) != ""
 }
 
 // GetCurrentSessionName returns current session's name
