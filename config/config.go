@@ -53,7 +53,7 @@ type PaneConfig struct {
 // FocusConfig is a struct for focus' configuration
 type FocusConfig struct {
 	Name string `json:"name"`
-	Pane string `json:"pane,omiempty"`
+	Pane string `json:"pane,omitempty"`
 }
 
 // ReadAll reads all predefined session configs from file
@@ -277,7 +277,7 @@ func ReplaceString(str string) string {
 	// '%h' => host name
 	if strings.Contains(replaced, "%h") {
 		if output, err := exec.Command("hostname", "-s").CombinedOutput(); err == nil {
-			replaced = strings.Replace(replaced, "%h", strings.TrimSpace(string(output)), 0)
+			replaced = strings.Replace(replaced, "%h", strings.TrimSpace(string(output)), -1)
 		}
 	}
 
