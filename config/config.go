@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -67,7 +66,7 @@ func ReadAll() map[string]SessionConfig {
 
 		// config file exists,
 		if _, err := os.Stat(configFilepath); err == nil {
-			if file, err := ioutil.ReadFile(configFilepath); err != nil {
+			if file, err := os.ReadFile(configFilepath); err != nil {
 				_stderr.Fatalf("* failed to read config file (%s)\n", err)
 			} else {
 				if err := json.Unmarshal(file, &all); err != nil {
