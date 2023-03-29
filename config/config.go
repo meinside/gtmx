@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"strings"
 )
@@ -16,7 +15,8 @@ var _stderr = log.New(os.Stderr, "", 0)
 
 // Constants
 const (
-	ConfigFilename = ".gtmx.json" // config file's name
+	ApplicationName = "gtmx"
+	ConfigFilename  = "config.json" // config file's name
 )
 
 // SessionConfig is a struct for session's configuration
@@ -59,19 +59,30 @@ type FocusConfig struct {
 func ReadAll() map[string]SessionConfig {
 	all := make(map[string]SessionConfig)
 
-	if user, err := user.Current(); err != nil {
-		_stderr.Fatalf("* failed to get current user (%s)\n", err)
-	} else {
-		configFilepath := fmt.Sprintf("%s/%s", user.HomeDir, ConfigFilename)
+	// https://xdgbasedirectoryspecification.com
+	configDir := os.Getenv("XDG_CONFIG_HOME")
 
-		// config file exists,
-		if _, err := os.Stat(configFilepath); err == nil {
-			if file, err := os.ReadFile(configFilepath); err != nil {
-				_stderr.Fatalf("* failed to read config file (%s)\n", err)
-			} else {
-				if err := json.Unmarshal(file, &all); err != nil {
-					_stderr.Fatalf("* failed to parse config file (%s)\n", err)
-				}
+	// If the value of the environment variable is unset, empty, or not an absolute path, use the default
+	if configDir == "" || configDir[0:1] != "/" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			_stderr.Fatalf("* failed to get home directory (%s)\n", err)
+		} else {
+			configDir = filepath.Join(homeDir, ".config", ApplicationName)
+		}
+	} else {
+		configDir = filepath.Join(configDir, ApplicationName)
+	}
+
+	configFilepath := fmt.Sprintf("%s/%s", configDir, ConfigFilename)
+
+	// config file exists,
+	if _, err := os.Stat(configFilepath); err == nil {
+		if file, err := os.ReadFile(configFilepath); err != nil {
+			_stderr.Fatalf("* failed to read config file (%s)\n", err)
+		} else {
+			if err := json.Unmarshal(file, &all); err != nil {
+				_stderr.Fatalf("* failed to parse config file (%s)\n", err)
 			}
 		}
 	}
