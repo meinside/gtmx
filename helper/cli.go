@@ -64,7 +64,7 @@ $ gtmx [SESSION_KEY]
 func PrintConfigAndExit() {
 	sample := config.GetSampleConfigAsJSON()
 
-	_stdout.Printf("/* sample config file (save it as ~/%s) */\n\n", config.ConfigFilename)
+	_stdout.Printf("/* sample config file (save it as $XDG_CONFIG_HOME/%s/%s) */\n\n", config.ApplicationName, config.ConfigFilename)
 
 	_stdout.Println(sample)
 
