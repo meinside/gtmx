@@ -31,7 +31,7 @@ $ gtmx
 
 #### create a new config file
 
-You can predefine sessions in your config file. (at `~/.gtmx.conf`)
+You can predefine sessions in your config file. (at `$XDG_CONFIG_HOME/gtmx/config.json`)
 
 If you need a sample config file,
 
@@ -59,7 +59,7 @@ $ gtmx -l
 $ gtmx --list
 ```
 
-### 5. kill this session
+### 5. terminate this session
 
 ```bash
 $ gtmx -q
