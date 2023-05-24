@@ -17,6 +17,8 @@ func main() {
 		helper.PrintUsageAndExit()
 	} else if helper.ParamExists(params, "-g", "--gen-config") {
 		helper.PrintConfigAndExit()
+	} else if helper.ParamExists(params, "-V", "--version") {
+		helper.PrintVersionAndExit()
 	} else if helper.ParamExists(params, "-l", "--list") {
 		helper.PrintSessionsAndExit(isVerbose)
 	} else if helper.ParamExists(params, "-q", "--quit") {

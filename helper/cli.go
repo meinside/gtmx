@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/meinside/gtmx/config"
+	"github.com/meinside/version-go"
 )
 
 // ParamExists checks for the existence of given param names
@@ -40,6 +41,12 @@ $ gtmx -v
 $ gtmx --verbose
 
 
+# print version
+
+$ gtmx -V
+$ gtmx --version
+
+
 # list predefined or running sessions
 
 $ gtmx -l
@@ -56,6 +63,13 @@ $ gtmx --quit
 
 $ gtmx [SESSION_KEY]
 `)
+
+	os.Exit(0)
+}
+
+// PrintVersionAndExit prints version string and exits
+func PrintVersionAndExit() {
+	_stdout.Printf("%s", version.Minimum())
 
 	os.Exit(0)
 }
