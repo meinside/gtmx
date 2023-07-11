@@ -1,7 +1,8 @@
-package helper
+package tmux
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strconv"
@@ -10,6 +11,9 @@ import (
 
 	"github.com/meinside/gtmx/config"
 )
+
+// loggers
+var _stdout = log.New(os.Stdout, "", 0)
 
 // Constants
 const (
@@ -28,7 +32,7 @@ type TmuxHelper struct {
 
 // NewHelper creates a new tmux helper
 func NewHelper() *TmuxHelper {
-	return new(TmuxHelper)
+	return &TmuxHelper{}
 }
 
 // IsSessionCreated checks if a session is created or not
@@ -412,7 +416,7 @@ func ConfigureAndAttachToSession(sessionKey string, isVerbose bool) (errors []er
 			}
 
 			// if already in another session, try switching to it instead of attaching
-			if isInSession() {
+			if IsInSession() {
 				if currentSessionName, err := GetCurrentSessionName(); err == nil {
 					if currentSessionName != session.Name {
 						if err := SwitchSession(session.Name); err == nil {
@@ -447,7 +451,7 @@ func ConfigureAndAttachToSession(sessionKey string, isVerbose bool) (errors []er
 			}
 
 			// if already in another session, try switching to it instead of attaching
-			if isInSession() {
+			if IsInSession() {
 				if currentSessionName, err := GetCurrentSessionName(); err == nil {
 					if currentSessionName != sessionName {
 						if err := SwitchSession(sessionName); err == nil {
@@ -469,7 +473,8 @@ func ConfigureAndAttachToSession(sessionKey string, isVerbose bool) (errors []er
 	return errors
 }
 
-func isInSession() bool {
+// IsInSession checks if current session is in tmux
+func IsInSession() bool {
 	env := os.Getenv("TMUX")
 
 	return strings.TrimSpace(env) != ""
