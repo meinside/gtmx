@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// logger
+// standard error
 var _stderr = log.New(os.Stderr, "", 0)
 
 // Constants
@@ -90,8 +90,8 @@ func ReadAll() map[string]SessionConfig {
 	return all
 }
 
-// getSampleConfig gets sample config (for generating sample config file)
-func getSampleConfig() map[string]SessionConfig {
+// GetSampleConfig generates a sample config (for generating sample config file)
+func GetSampleConfig() map[string]SessionConfig {
 	sample := make(map[string]SessionConfig)
 
 	// (example 1) for rails projects
@@ -255,14 +255,14 @@ func getSampleConfig() map[string]SessionConfig {
 
 // GetSampleConfigAsJSON generates a sample config as JSON string
 func GetSampleConfigAsJSON() string {
-	sample := getSampleConfig()
+	sample := GetSampleConfig()
 	if b, err := json.MarshalIndent(sample, "", "  "); err == nil {
 		return string(b)
 	}
 	return "{}"
 }
 
-// ReplaceString replaces a string with place holders
+// ReplaceString replaces all place holders in a given string
 //
 // '%d' => current directory's name
 // '%p' => current directory's path

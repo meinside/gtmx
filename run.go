@@ -1,15 +1,22 @@
-package helper
+package main
 
 import (
+	"log"
 	"os"
 	"strings"
 
 	"github.com/meinside/gtmx/config"
+	"github.com/meinside/gtmx/tmux"
+
 	"github.com/meinside/version-go"
 )
 
-// ParamExists checks for the existence of given param names
-func ParamExists(params []string, shortParam string, longParam string) bool {
+// loggers
+var _stdout = log.New(os.Stdout, "", 0)
+var _stderr = log.New(os.Stderr, "", 0)
+
+// check for the existence of given param names
+func paramExists(params []string, shortParam string, longParam string) bool {
 	for _, param := range params {
 		if param == shortParam || param == longParam {
 			return true
@@ -18,8 +25,8 @@ func ParamExists(params []string, shortParam string, longParam string) bool {
 	return false
 }
 
-// PrintUsageAndExit prints usage and exits
-func PrintUsageAndExit() {
+// print usage and exits
+func printUsageAndExit() {
 	_stdout.Printf(`
 > usage
 
@@ -67,15 +74,15 @@ $ gtmx [SESSION_KEY]
 	os.Exit(0)
 }
 
-// PrintVersionAndExit prints version string and exits
-func PrintVersionAndExit() {
+// print version string and exits
+func printVersionAndExit() {
 	_stdout.Printf("%s", version.Minimum())
 
 	os.Exit(0)
 }
 
-// PrintConfigAndExit prints sample config file and exits
-func PrintConfigAndExit() {
+// print sample config file and exits
+func printConfigAndExit() {
 	sample := config.GetSampleConfigAsJSON()
 
 	_stdout.Printf("/* sample config file (save it as $XDG_CONFIG_HOME/%s/%s) */\n\n", config.ApplicationName, config.ConfigFilename)
@@ -85,8 +92,8 @@ func PrintConfigAndExit() {
 	os.Exit(0)
 }
 
-// RunWithParams runs with given parameters
-func RunWithParams(params []string, isVerbose bool) {
+// run with given parameters
+func runWithParams(params []string, isVerbose bool) {
 	var sessionKey string
 	for _, param := range params {
 		if !strings.HasPrefix(param, "-") {
@@ -96,14 +103,14 @@ func RunWithParams(params []string, isVerbose bool) {
 	}
 	if sessionKey == "" {
 		var err error
-		sessionKey, err = GetDefaultSessionKey()
+		sessionKey, err = tmux.GetDefaultSessionKey()
 
 		if err != nil {
 			_stderr.Printf("* %s\n", err)
 		}
 	}
 
-	errors := ConfigureAndAttachToSession(sessionKey, isVerbose)
+	errors := tmux.ConfigureAndAttachToSession(sessionKey, isVerbose)
 
 	if len(errors) > 0 {
 		for _, err := range errors {
@@ -112,8 +119,8 @@ func RunWithParams(params []string, isVerbose bool) {
 	}
 }
 
-// PrintSessionsAndExit prints sessions and exits
-func PrintSessionsAndExit(isVerbose bool) {
+// print sessions and exits
+func printSessionsAndExit(isVerbose bool) {
 	_stdout.Println()
 
 	// list predefined sessions
@@ -134,7 +141,7 @@ func PrintSessionsAndExit(isVerbose bool) {
 	_stdout.Println()
 
 	// list running sessions
-	sessions, err := ListSessions(isVerbose)
+	sessions, err := tmux.ListSessions(isVerbose)
 	if len(sessions) > 0 {
 		_stdout.Printf("> all running sessions:\n")
 
@@ -152,16 +159,16 @@ func PrintSessionsAndExit(isVerbose bool) {
 	os.Exit(0)
 }
 
-// KillCurrentSession kills this session
-func KillCurrentSession() {
-	if !isInSession() {
+// kill this session
+func killCurrentSession() {
+	if !tmux.IsInSession() {
 		_stderr.Printf("* not in a tmux session\n")
 		return
 	}
 
-	session, err := GetCurrentSessionName()
+	session, err := tmux.GetCurrentSessionName()
 	if err == nil {
-		err = KillSession(session)
+		err = tmux.KillSession(session)
 		if err == nil {
 			return
 		}

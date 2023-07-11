@@ -5,7 +5,7 @@ Go-Tmux, easy tmux runner.
 ## Install
 
 ```
-$ go get -u github.com/meinside/gtmx
+$ go install github.com/meinside/gtmx@latest
 ```
 
 ## Usage

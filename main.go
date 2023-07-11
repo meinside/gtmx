@@ -2,28 +2,26 @@ package main
 
 import (
 	"os"
-
-	"github.com/meinside/gtmx/helper"
 )
 
 func main() {
 	params := os.Args[1:]
 
 	// check if verbose option is on
-	var isVerbose = helper.ParamExists(params, "-v", "--verbose")
+	var isVerbose = paramExists(params, "-v", "--verbose")
 
 	// check params
-	if helper.ParamExists(params, "-h", "--help") {
-		helper.PrintUsageAndExit()
-	} else if helper.ParamExists(params, "-g", "--gen-config") {
-		helper.PrintConfigAndExit()
-	} else if helper.ParamExists(params, "-V", "--version") {
-		helper.PrintVersionAndExit()
-	} else if helper.ParamExists(params, "-l", "--list") {
-		helper.PrintSessionsAndExit(isVerbose)
-	} else if helper.ParamExists(params, "-q", "--quit") {
-		helper.KillCurrentSession()
+	if paramExists(params, "-h", "--help") {
+		printUsageAndExit()
+	} else if paramExists(params, "-g", "--gen-config") {
+		printConfigAndExit()
+	} else if paramExists(params, "-V", "--version") {
+		printVersionAndExit()
+	} else if paramExists(params, "-l", "--list") {
+		printSessionsAndExit(isVerbose)
+	} else if paramExists(params, "-q", "--quit") {
+		killCurrentSession()
 	} else {
-		helper.RunWithParams(params, isVerbose)
+		runWithParams(params, isVerbose)
 	}
 }
