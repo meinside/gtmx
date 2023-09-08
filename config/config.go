@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/tailscale/hujson"
 )
 
 // standard error
@@ -66,7 +68,7 @@ func ReadAll() map[string]SessionConfig {
 	if configDir == "" || configDir[0:1] != "/" {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
-			_stderr.Fatalf("* failed to get home directory (%s)\n", err)
+			_stderr.Fatalf("* failed to get home directory: %s\n", err)
 		} else {
 			configDir = filepath.Join(homeDir, ".config", ApplicationName)
 		}
@@ -78,11 +80,15 @@ func ReadAll() map[string]SessionConfig {
 
 	// config file exists,
 	if _, err := os.Stat(configFilepath); err == nil {
-		if file, err := os.ReadFile(configFilepath); err != nil {
-			_stderr.Fatalf("* failed to read config file (%s)\n", err)
+		if bytes, err := os.ReadFile(configFilepath); err != nil {
+			_stderr.Fatalf("* failed to read config file: %s\n", err)
 		} else {
-			if err := json.Unmarshal(file, &all); err != nil {
-				_stderr.Fatalf("* failed to parse config file (%s)\n", err)
+			if bytes, err := standardizeJSON(bytes); err != nil {
+				_stderr.Fatalf("* failed to standardize config file to JWCC JSON: %s\n", err)
+			} else {
+				if err := json.Unmarshal(bytes, &all); err != nil {
+					_stderr.Fatalf("* failed to parse config file: %s\n", err)
+				}
 			}
 		}
 	}
@@ -292,4 +298,15 @@ func ReplaceString(str string) string {
 	}
 
 	return replaced
+}
+
+// standardize given JSON (JWCC) bytes
+func standardizeJSON(b []byte) ([]byte, error) {
+	ast, err := hujson.Parse(b)
+	if err != nil {
+		return b, err
+	}
+	ast.Standardize()
+
+	return ast.Pack(), nil
 }
