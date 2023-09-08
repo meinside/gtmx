@@ -173,7 +173,7 @@ func killCurrentSession() {
 			return
 		}
 
-		_stderr.Printf("* error killing session: %s (%s)\n", session, err)
+		_stderr.Printf("* failed to kill session '%s': %s\n", session, err)
 		return
 	}
 
