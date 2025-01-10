@@ -10,14 +10,14 @@ $ go install github.com/meinside/gtmx@latest
 
 ## Usage
 
-### 1. start a new session
+### 1. Start a new session
 
 ```bash
 # will start a new session named as your hostname
 $ gtmx
 ```
 
-### 2. resume or switch to a session
+### 2. Resume or switch to a session
 
 ```bash
 # will resume, or switch to a session with given name
@@ -27,7 +27,7 @@ $ gtmx [SESSION_NAME]
 $ gtmx
 ```
 
-### 3. start a predefined session
+### 3. Start a predefined session
 
 #### create a new config file
 
@@ -50,7 +50,7 @@ it will be printed on the screen.
 $ gtmx [SESSION_NAME]
 ```
 
-### 4. list predefined/running sessions
+### 4. List predefined/running sessions
 
 ```bash
 $ gtmx -l
@@ -59,7 +59,7 @@ $ gtmx -l
 $ gtmx --list
 ```
 
-### 5. terminate this session
+### 5. Terminate current session
 
 ```bash
 $ gtmx -q
