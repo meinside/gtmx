@@ -105,30 +105,30 @@ func GetSampleConfig() map[string]SessionConfig {
 		},
 	}
 
-	// (example 4) for managing multiple servers
+	// (example 4) for managing multiple servers synchronously
 	sample["multiple-servers"] = SessionConfig{
 		Name:        "multiple servers",
 		Description: ToPtr("for connecting to multiple servers and sending same commands all at once"),
 		Windows: []WindowConfig{
 			{
 				Name:    "all-servers",
-				Command: ToPtr("ssh my-server-1"),
+				Command: ToPtr("ssh user1@my-server-1 && exit"),
 				Panes: []PaneConfig{
 					{
 						Name:    "server 2",
-						Command: ToPtr("ssh my-server-2"),
+						Command: ToPtr("ssh user2@my-server-2 && exit"),
 					},
 					{
 						Name:    "server 3",
-						Command: ToPtr("ssh my-server-3"),
+						Command: ToPtr("ssh user3@my-server-3 && exit"),
 					},
 					{
 						Name:    "server 4",
-						Command: ToPtr("ssh my-server-4"),
+						Command: ToPtr("ssh user4@my-server-4 && exit"),
 					},
 					{
 						Name:    "server 5",
-						Command: ToPtr("ssh my-server-5"),
+						Command: ToPtr("ssh user5@my-server-5 && exit"),
 					},
 				},
 				Synchronize: true, // synchronize inputs on all panes
