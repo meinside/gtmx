@@ -12,8 +12,10 @@ import (
 )
 
 // loggers
-var _stdout = log.New(os.Stdout, "", 0)
-var _stderr = log.New(os.Stderr, "", 0)
+var (
+	_stdout = log.New(os.Stdout, "", 0)
+	_stderr = log.New(os.Stderr, "", 0)
+)
 
 // check for the existence of given param names
 func paramExists(params []string, shortParam string, longParam string) bool {
@@ -104,7 +106,6 @@ func runWithParams(params []string, isVerbose bool) {
 	if sessionKey == "" {
 		var err error
 		sessionKey, err = tmux.GetDefaultSessionKey()
-
 		if err != nil {
 			_stderr.Printf("* %s\n", err)
 		}
@@ -128,8 +129,8 @@ func printSessionsAndExit(isVerbose bool) {
 		_stdout.Printf("> all predefined sessions:\n")
 
 		for name, conf := range confs {
-			if len(conf.Description) > 0 {
-				_stdout.Printf(" - %s: %s (%s)\n", name, conf.Name, conf.Description)
+			if conf.Description != nil {
+				_stdout.Printf(" - %s: %s (%s)\n", name, conf.Name, *conf.Description)
 			} else {
 				_stdout.Printf(" - %s: %s\n", name, conf.Name)
 			}

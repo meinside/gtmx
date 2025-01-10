@@ -24,40 +24,34 @@ const (
 // SessionConfig is a struct for session's configuration
 type SessionConfig struct {
 	Name        string         `json:"name"`
-	Description string         `json:"description,omitempty"`
-	RootDir     string         `json:"root_dir,omitempty"`
+	Description *string        `json:"description,omitempty"`
+	RootDir     *string        `json:"root_dir,omitempty"`
 	Windows     []WindowConfig `json:"windows,omitempty"`
-	Focus       FocusConfig    `json:"focus,omitempty"`
+	Focus       *FocusConfig   `json:"focus,omitempty"`
 }
 
 // WindowConfig is a struct for window's configuration
 type WindowConfig struct {
-	Name    string      `json:"name"`
-	Dir     string      `json:"dir,omitempty"`
-	Command string      `json:"cmd,omitempty"`
-	Split   SplitConfig `json:"split,omitempty"`
-}
-
-// SplitConfig is a struct for split's configuration
-type SplitConfig struct {
-	Vertical   bool         `json:"vertical,omitempty"`
-	Percentage int          `json:"percentage,omitempty"`
-	Panes      []PaneConfig `json:"panes,omitempty"`
+	Name        string       `json:"name"`
+	Dir         *string      `json:"dir,omitempty"`
+	Command     *string      `json:"cmd,omitempty"`
+	Panes       []PaneConfig `json:"panes,omitempty"`
+	Synchronize bool         `json:"synchronize,omitempty"`
 }
 
 // PaneConfig is a struct for pane's configuration
 type PaneConfig struct {
-	Pane    string `json:"pane"`
-	Command string `json:"cmd,omitempty"`
+	Name    string  `json:"name"`
+	Command *string `json:"cmd,omitempty"`
 }
 
 // FocusConfig is a struct for focus' configuration
 type FocusConfig struct {
-	Name string `json:"name"`
-	Pane string `json:"pane,omitempty"`
+	Name       string `json:"name"`
+	PaneNumber *int   `json:"pane,omitempty"`
 }
 
-// ReadAll reads all predefined session configs from file
+// ReadAll reads all predefined session configs from file.
 func ReadAll() map[string]SessionConfig {
 	all := make(map[string]SessionConfig)
 
@@ -96,179 +90,12 @@ func ReadAll() map[string]SessionConfig {
 	return all
 }
 
-// GetSampleConfig generates a sample config (for generating sample config file)
-func GetSampleConfig() map[string]SessionConfig {
-	sample := make(map[string]SessionConfig)
-
-	// (example 1) for rails projects
-	// NOTE: This session should be started in a rails project directory.
-	sample["rails"] = SessionConfig{
-		Name:        "rails-%d", // name session with current directory name
-		Description: "predefined session for rails projects",
-		Windows: []WindowConfig{
-			{
-				Name: "console",
-			},
-			{
-				Name: "models",
-				Dir:  "%p/app/models/", // relative directory
-			},
-			{
-				Name: "views",
-				Dir:  "%p/app/views/", // relative directory
-			},
-			{
-				Name: "controllers", // relative directory
-				Dir:  "%p/app/controllers/",
-			},
-			{
-				Name: "configs",
-				Dir:  "%p/config/",
-			},
-			{
-				Name: "server",
-				Split: SplitConfig{ // split into two panes and run commands
-					Vertical:   true,
-					Percentage: 50,
-					Panes: []PaneConfig{
-						{
-							Pane:    "1",
-							Command: "rails server",
-						},
-						{
-							Pane:    "2",
-							Command: "rails console",
-						},
-					},
-				},
-			},
-		},
-		Focus: FocusConfig{
-			Name: "server", // focus on the 'server' window
-			Pane: "2",      // and '2' pane
-		},
-	}
-
-	// (example 2) for rust projects (created with rustup)
-	// NOTE: This session should be started in a rust project directory.
-	sample["rust"] = SessionConfig{
-		Name:        "rust-%d",
-		Description: "predefined session for rust projects",
-		Windows: []WindowConfig{
-			{
-				Name:    "root",
-				Command: "git status",
-			},
-			{
-				Name:    "src",
-				Dir:     "%p/src/", // relative directory
-				Command: "ls",
-			},
-		},
-		Focus: FocusConfig{
-			Name: "root", // focus on the 'root' window
-		},
-	}
-
-	// (example 3) for clojure projects (created with lein)
-	// NOTE: This session should be started in a clojure project directory.
-	sample["clojure"] = SessionConfig{
-		Name:        "clj-%d",
-		Description: "predefined session for clojure projects",
-		Windows: []WindowConfig{
-			{
-				Name:    "root",
-				Command: "git status",
-			},
-			{
-				Name:    "src",
-				Dir:     "%p/src/", // relative directory
-				Command: "ls",
-			},
-			{
-				Name:    "test",
-				Dir:     "%p/test/", // relative directory
-				Command: "ls",
-			},
-			{
-				Name:    "doc",
-				Dir:     "%p/doc/", // relative directory
-				Command: "ls",
-			},
-			{
-				Name:    "repl",
-				Dir:     "%p/", // relative directory
-				Command: "lein repl",
-			},
-		},
-		Focus: FocusConfig{
-			Name: "root", // focus on the 'root' window
-		},
-	}
-
-	// (example 4) for babashka scripts and conjure
-	sample["bb"] = SessionConfig{
-		Name:        "bb-%d",
-		Description: "predefined session for babashka scripts and conjure with nrepl connection",
-		Windows: []WindowConfig{
-			{
-				Name:    "nrepl",
-				Dir:     "%p/", // relative directory
-				Command: "echo `shuf -i 10000-50000 -n 1` > .nrepl-port && bb --nrepl-server `cat .nrepl-port`",
-			},
-			{
-				Name:    "scripts",
-				Dir:     "%p/", // relative directory
-				Command: "ls",
-			},
-		},
-		Focus: FocusConfig{
-			Name: "scripts", // focus on the 'scripts' window
-		},
-	}
-
-	// (example 5) for this project
-	sample["gtmx"] = SessionConfig{
-		Name:        "gtmx-dev",
-		Description: "predefined session for gtmx development",
-		RootDir:     "/home/pi/go/src/github.com/meinside/gtmx", // absolute root directory
-		Windows: []WindowConfig{
-			{
-				Name:    "git",
-				Command: "git status",
-			},
-			{
-				Name: "main",
-			},
-			{
-				Name:    "config",
-				Dir:     "%p/config/", // relative directory
-				Command: "ls",
-			},
-			{
-				Name:    "helper",
-				Dir:     "%p/helper/", // relative directory
-				Command: "ls",
-			},
-		},
-		Focus: FocusConfig{
-			Name: "main", // focus on the 'main' window
-		},
-	}
-
-	return sample
+// ToPtr returns the pointer of given value.
+func ToPtr[T any](v T) *T {
+	return &v
 }
 
-// GetSampleConfigAsJSON generates a sample config as JSON string
-func GetSampleConfigAsJSON() string {
-	sample := GetSampleConfig()
-	if b, err := json.MarshalIndent(sample, "", "  "); err == nil {
-		return string(b)
-	}
-	return "{}"
-}
-
-// ReplaceString replaces all place holders in a given string
+// ReplaceString replaces all placeholders in a given string.
 //
 // '%d' => current directory's name
 // '%p' => current directory's path
@@ -279,21 +106,21 @@ func ReplaceString(str string) string {
 	// '%d' => current directory's name
 	if strings.Contains(replaced, "%d") {
 		if dir, err := os.Getwd(); err == nil {
-			replaced = strings.Replace(replaced, "%d", filepath.Base(dir), -1)
+			replaced = strings.ReplaceAll(replaced, "%d", filepath.Base(dir))
 		}
 	}
 
 	// '%p' => current directory's path
 	if strings.Contains(replaced, "%p") {
 		if dir, err := os.Getwd(); err == nil {
-			replaced = strings.Replace(replaced, "%p", dir, -1)
+			replaced = strings.ReplaceAll(replaced, "%p", dir)
 		}
 	}
 
 	// '%h' => host name
 	if strings.Contains(replaced, "%h") {
 		if output, err := exec.Command("hostname", "-s").CombinedOutput(); err == nil {
-			replaced = strings.Replace(replaced, "%h", strings.TrimSpace(string(output)), -1)
+			replaced = strings.ReplaceAll(replaced, "%h", strings.TrimSpace(string(output)))
 		}
 	}
 
