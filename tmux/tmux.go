@@ -1,3 +1,6 @@
+// tmux/tmux.go
+
+// Package tmux for running tmux
 package tmux
 
 import (
@@ -44,7 +47,10 @@ func IsSessionCreated(sessionName string, isVerbose bool) (bool, error) {
 	}
 
 	if isVerbose {
-		_stdout.Printf("[verbose] checking if session is created with command: `tmux %s`\n", strings.Join(args, " "))
+		_stdout.Printf(
+			"[verbose] checking if session is created with command: `tmux %s`\n",
+			strings.Join(args, " "),
+		)
 	}
 
 	_, err := RunTmuxWithArgs(args)
@@ -62,7 +68,10 @@ func ListSessions(isVerbose bool) (sessionLines []string, err error) {
 	}
 
 	if isVerbose {
-		_stdout.Printf("[verbose] list running sessions with command: `tmux %s`\n", strings.Join(args, " "))
+		_stdout.Printf(
+			"[verbose] list running sessions with command: `tmux %s`\n",
+			strings.Join(args, " "),
+		)
 	}
 
 	output, err := RunTmuxWithArgs(args)
@@ -118,13 +127,19 @@ func (t *TmuxHelper) CreateWindow(windowName string, directory, command *string)
 			}
 
 			if t.Verbose {
-				_stdout.Printf("[verbose] creating a new window with command: `tmux %s`\n", strings.Join(args, " "))
+				_stdout.Printf(
+					"[verbose] creating a new window with command: `tmux %s`\n",
+					strings.Join(args, " "),
+				)
 			}
 
 			output, err := RunTmuxWithArgs(args)
 			if err == nil {
 				if t.Verbose {
-					_stdout.Printf("[verbose] created a new window named: %s\n", windowName)
+					_stdout.Printf(
+						"[verbose] created a new window named: %s\n",
+						windowName,
+					)
 				}
 
 				if command != nil {
@@ -134,7 +149,11 @@ func (t *TmuxHelper) CreateWindow(windowName string, directory, command *string)
 				return nil
 			}
 
-			return fmt.Errorf("error creating a new window: %s (%s)", windowName, output)
+			return fmt.Errorf(
+				"error creating a new window: %s (%s)",
+				windowName,
+				output,
+			)
 		}
 	}
 
@@ -153,13 +172,19 @@ func (t *TmuxHelper) CreateWindow(windowName string, directory, command *string)
 	}
 
 	if t.Verbose {
-		_stdout.Printf("[verbose] creating a new session with command: `tmux %s`\n", strings.Join(args, " "))
+		_stdout.Printf(
+			"[verbose] creating a new session with command: `tmux %s`\n",
+			strings.Join(args, " "),
+		)
 	}
 
 	output, err := RunTmuxWithArgs(args)
 	if err == nil {
 		if t.Verbose {
-			_stdout.Printf("[verbose] created a new session named: %s\n", t.SessionName)
+			_stdout.Printf(
+				"[verbose] created a new session named: %s\n",
+				t.SessionName,
+			)
 		}
 
 		if command != nil {
@@ -216,7 +241,8 @@ func (t *TmuxHelper) Command(windowName string, paneName *string, command string
 
 	output, err := RunTmuxWithArgs(args)
 	if err != nil {
-		err = fmt.Errorf("error executing command `%s` for target: %s (%s)",
+		err = fmt.Errorf(
+			"error executing command `%s` for target: %s (%s)",
 			command,
 			target,
 			output,
@@ -236,12 +262,16 @@ func (t *TmuxHelper) FocusWindow(windowName string) error {
 	}
 
 	if t.Verbose {
-		_stdout.Printf("[verbose] focusing window with command: `tmux %s`\n", strings.Join(args, " "))
+		_stdout.Printf(
+			"[verbose] focusing window with command: `tmux %s`\n",
+			strings.Join(args, " "),
+		)
 	}
 
 	output, err := RunTmuxWithArgs(args)
 	if err != nil {
-		err = fmt.Errorf("error focusing window: %s (%s)",
+		err = fmt.Errorf(
+			"error focusing window: %s (%s)",
 			target,
 			output,
 		)
@@ -259,12 +289,19 @@ func (t *TmuxHelper) FocusPane(paneNumber int) error {
 	}
 
 	if t.Verbose {
-		_stdout.Printf("[verbose] focusing pane with command: `tmux %s`\n", strings.Join(args, " "))
+		_stdout.Printf(
+			"[verbose] focusing pane with command: `tmux %s`\n",
+			strings.Join(args, " "),
+		)
 	}
 
 	output, err := RunTmuxWithArgs(args)
 	if err != nil {
-		err = fmt.Errorf("error focusing pane: %d (%s)", paneNumber, output)
+		err = fmt.Errorf(
+			"error focusing pane: %d (%s)",
+			paneNumber,
+			output,
+		)
 	}
 
 	return err
@@ -286,13 +323,20 @@ func (t *TmuxHelper) SplitWindowTiled(windowName string, directory *string, pane
 	}
 
 	if t.Verbose {
-		_stdout.Printf("[verbose] splitting window tiled with command: `tmux %s`\n", strings.Join(args, " "))
+		_stdout.Printf(
+			"[verbose] splitting window tiled with command: `tmux %s`\n",
+			strings.Join(args, " "),
+		)
 	}
 
 	// split window,
 	output, err := RunTmuxWithArgs(args)
 	if err != nil {
-		return fmt.Errorf("error splitting window: %s (%s)", target, output)
+		return fmt.Errorf(
+			"error splitting window: %s (%s)",
+			target,
+			output,
+		)
 	}
 
 	args = []string{
@@ -303,19 +347,30 @@ func (t *TmuxHelper) SplitWindowTiled(windowName string, directory *string, pane
 	}
 
 	if t.Verbose {
-		_stdout.Printf("[verbose] setting tiled layout with command: `tmux %s`\n", strings.Join(args, " "))
+		_stdout.Printf(
+			"[verbose] setting tiled layout with command: `tmux %s`\n",
+			strings.Join(args, " "),
+		)
 	}
 
 	// set tiled layout,
 	output, err = RunTmuxWithArgs(args)
 	if err != nil {
-		return fmt.Errorf("error setting tiled layout for target: %s (%s)", target, output)
+		return fmt.Errorf(
+			"error setting tiled layout for target: %s (%s)",
+			target,
+			output,
+		)
 	}
 
 	// and run command
 	if cmd != nil {
 		if err = t.Command(windowName, nil, *cmd); err != nil {
-			return fmt.Errorf("error running command for target: %s (%w)", target, err)
+			return fmt.Errorf(
+				"error running command for target: %s (%w)",
+				target,
+				err,
+			)
 		}
 	}
 
@@ -334,7 +389,10 @@ func (t *TmuxHelper) Attach() error {
 	path, err := exec.LookPath(TmuxCommand)
 	if err == nil {
 		if t.Verbose {
-			_stdout.Printf("[verbose] attaching to a session with command: `%s`\n", strings.Join(command, " "))
+			_stdout.Printf(
+				"[verbose] attaching to a session with command: `%s`\n",
+				strings.Join(command, " "),
+			)
 		}
 
 		err = syscall.Exec(path, command, syscall.Environ())
@@ -343,7 +401,11 @@ func (t *TmuxHelper) Attach() error {
 		}
 	}
 
-	return fmt.Errorf("error attaching to session: %s (%w)", t.SessionName, err)
+	return fmt.Errorf(
+		"error attaching to session: %s (%w)",
+		t.SessionName,
+		err,
+	)
 }
 
 // ConfigureAndAttachToSession configures up a session (if needed) and attaches to it.
@@ -356,30 +418,45 @@ func ConfigureAndAttachToSession(sessionKey string, isVerbose bool) (errors []er
 
 	if session, ok := configs[sessionKey]; ok {
 		if tmux.Verbose {
-			_stdout.Printf("[verbose] using predefined session with key: %s\n", sessionKey)
+			_stdout.Printf(
+				"[verbose] using predefined session with key: %s\n",
+				sessionKey,
+			)
 		}
 
 		session.Name = config.ReplaceString(session.Name)
 
 		if tmux.Verbose {
-			_stdout.Printf("[verbose] using session name: %s\n", session.Name)
+			_stdout.Printf(
+				"[verbose] using session name: %s\n",
+				session.Name,
+			)
 		}
 
 		if session.RootDir != nil {
 			rootDir := expandDir(*session.RootDir)
 
 			if tmux.Verbose {
-				_stdout.Printf("[verbose] session root directory: %s\n", rootDir)
+				_stdout.Printf(
+					"[verbose] session root directory: %s\n",
+					rootDir,
+				)
 			}
 
 			_, err := os.Stat(rootDir)
 
 			if os.IsNotExist(err) {
-				errors = append(errors, fmt.Errorf("directory does not exist: %s", rootDir))
+				errors = append(errors, fmt.Errorf(
+					"directory does not exist: %s",
+					rootDir,
+				))
 			} else {
 				// change directory to it,
 				if err := os.Chdir(rootDir); err != nil {
-					errors = append(errors, fmt.Errorf("failed to change directory: %s", rootDir))
+					errors = append(errors, fmt.Errorf(
+						"failed to change directory: %s",
+						rootDir,
+					))
 				}
 			}
 		}
@@ -434,7 +511,8 @@ func ConfigureAndAttachToSession(sessionKey string, isVerbose bool) (errors []er
 					}
 					output, err := RunTmuxWithArgs(args)
 					if err != nil {
-						errors = append(errors, fmt.Errorf("error synchronizing inputs for target: %s (%s)",
+						errors = append(errors, fmt.Errorf(
+							"error synchronizing inputs for target: %s (%s)",
 							target,
 							output,
 						))
@@ -459,7 +537,10 @@ func ConfigureAndAttachToSession(sessionKey string, isVerbose bool) (errors []er
 			}
 		} else {
 			if tmux.Verbose {
-				_stdout.Printf("[verbose] resuming/switching to session: %s\n", session.Name)
+				_stdout.Printf(
+					"[verbose] resuming/switching to session: %s\n",
+					session.Name,
+				)
 			}
 
 			if err := tmux.SetSessionName(session.Name); err != nil {
@@ -492,13 +573,19 @@ func ConfigureAndAttachToSession(sessionKey string, isVerbose bool) (errors []er
 		created, _ := IsSessionCreated(sessionName, tmux.Verbose)
 		if !created {
 			if tmux.Verbose {
-				_stdout.Printf("[verbose] no matching predefined session, creating a new session: %s\n", sessionName)
+				_stdout.Printf(
+					"[verbose] no matching predefined session, creating a new session: %s\n",
+					sessionName,
+				)
 			}
 
 			_ = tmux.CreateWindow(DefaultWindowName, session.RootDir, nil)
 		} else {
 			if tmux.Verbose {
-				_stdout.Printf("[verbose] no matching predefined session, resuming/switching to session: %s\n", sessionName)
+				_stdout.Printf(
+					"[verbose] no matching predefined session, resuming/switching to session: %s\n",
+					sessionName,
+				)
 			}
 
 			// if already in another session, try switching to it instead of attaching
@@ -544,7 +631,10 @@ func GetCurrentSessionName() (string, error) {
 		return output, nil
 	}
 
-	return "", fmt.Errorf("failed to get current session name: %w", err)
+	return "", fmt.Errorf(
+		"failed to get current session name: %w",
+		err,
+	)
 }
 
 // SwitchSession switches to an existing session.
@@ -564,7 +654,11 @@ func SwitchSession(name string) error {
 		}
 	}
 
-	return fmt.Errorf("error switching to session: %s (%w)", name, err)
+	return fmt.Errorf(
+		"error switching to session: %s (%w)",
+		name,
+		err,
+	)
 }
 
 // KillSession kills a session with given name.
@@ -584,10 +678,14 @@ func KillSession(name string) error {
 		}
 	}
 
-	return fmt.Errorf("error killing session: %s (%w)", name, err)
+	return fmt.Errorf(
+		"error killing session: %s (%w)",
+		name,
+		err,
+	)
 }
 
-// expand given directory's path
+// expand given directory's path (`~` and environment variables)
 func expandDir(dir string) (expanded string) {
 	expanded = dir
 
@@ -604,6 +702,9 @@ func expandDir(dir string) (expanded string) {
 		splitted = append(splitted[:len(splitted)-1], username) // build up home path
 		expanded = strings.Join(append(splitted, dirs...), "/") // append dirs to home path
 	}
+
+	// expand environment variables
+	expanded = os.ExpandEnv(expanded)
 
 	return
 }

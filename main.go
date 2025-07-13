@@ -1,27 +1,89 @@
+// main.go
+
 package main
 
 import (
 	"os"
+
+	"github.com/fatih/color"
+	"github.com/jessevdk/go-flags"
+)
+
+const (
+	defaultUsage = `[OPTIONS...] [SESSION_NAME]`
 )
 
 func main() {
-	params := os.Args[1:]
+	// parse params,
+	var p params
+	parser := flags.NewParser(
+		&p,
+		flags.HelpFlag|flags.PassDoubleDash,
+	)
 
-	// check if verbose option is on
-	var isVerbose = paramExists(params, "-v", "--verbose")
+	// set custom usage string
+	parser.Usage = defaultUsage
 
-	// check params
-	if paramExists(params, "-h", "--help") {
-		printUsageAndExit()
-	} else if paramExists(params, "-g", "--gen-config") {
-		printConfigAndExit()
-	} else if paramExists(params, "-V", "--version") {
-		printVersionAndExit()
-	} else if paramExists(params, "-l", "--list") {
-		printSessionsAndExit(isVerbose)
-	} else if paramExists(params, "-q", "--quit") {
-		killCurrentSession()
+	if remaining, err := parser.Parse(); err == nil {
+		// check if multiple tasks were requested at a time
+		if p.multipleTaskRequested() {
+			os.Exit(
+				printErrorBeforeExit(
+					1,
+					"Input error: multiple tasks were requested at a time.",
+				),
+			)
+		}
+
+		// run with params
+		exit, err := run(p, remaining)
+
+		if err != nil {
+			os.Exit(
+				printErrorBeforeExit(
+					exit,
+					"Error: %s\n",
+					err,
+				),
+			)
+		} else {
+			os.Exit(exit)
+		}
 	} else {
-		runWithParams(params, isVerbose)
+		if e, ok := err.(*flags.Error); ok {
+			helpExitCode := 0
+			if e.Type != flags.ErrHelp {
+				helpExitCode = 1
+
+				printToStdoutColored(
+					color.FgHiRed,
+					"Input error: %s\n",
+					e.Error(),
+				)
+			}
+
+			os.Exit(
+				printHelpBeforeExit(
+					helpExitCode,
+					parser,
+				),
+			)
+		}
+
+		os.Exit(
+			printErrorBeforeExit(
+				1,
+				"Failed to parse flags: %s\n",
+				err,
+			),
+		)
 	}
+
+	// should not reach here
+	os.Exit(
+		printErrorBeforeExit(
+			1,
+			"Unhandled error.\n",
+		),
+	)
 }

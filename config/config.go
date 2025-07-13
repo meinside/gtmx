@@ -1,3 +1,6 @@
+// config/config.go
+
+// Package config for configuration of gtmx
 package config
 
 import (
@@ -58,11 +61,14 @@ func ReadAll() map[string]SessionConfig {
 	// https://xdgbasedirectoryspecification.com
 	configDir := os.Getenv("XDG_CONFIG_HOME")
 
-	// If the value of the environment variable is unset, empty, or not an absolute path, use the default
+	// if the value of the environment variable is unset, empty, or not an absolute path, use the default one
 	if configDir == "" || configDir[0:1] != "/" {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
-			_stderr.Fatalf("* failed to get home directory: %s\n", err)
+			_stderr.Fatalf(
+				"* failed to get home directory: %s\n",
+				err,
+			)
 		} else {
 			configDir = filepath.Join(homeDir, ".config", ApplicationName)
 		}
@@ -75,13 +81,22 @@ func ReadAll() map[string]SessionConfig {
 	// config file exists,
 	if _, err := os.Stat(configFilepath); err == nil {
 		if bytes, err := os.ReadFile(configFilepath); err != nil {
-			_stderr.Fatalf("* failed to read config file: %s\n", err)
+			_stderr.Fatalf(
+				"* failed to read config file: %s\n",
+				err,
+			)
 		} else {
 			if bytes, err := standardizeJSON(bytes); err != nil {
-				_stderr.Fatalf("* failed to standardize config file to JWCC JSON: %s\n", err)
+				_stderr.Fatalf(
+					"* failed to standardize config file to JWCC JSON: %s\n",
+					err,
+				)
 			} else {
 				if err := json.Unmarshal(bytes, &all); err != nil {
-					_stderr.Fatalf("* failed to parse config file: %s\n", err)
+					_stderr.Fatalf(
+						"* failed to parse config file: %s\n",
+						err,
+					)
 				}
 			}
 		}

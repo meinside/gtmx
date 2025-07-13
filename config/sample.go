@@ -1,3 +1,5 @@
+// config/sample.go
+
 package config
 
 import "encoding/json"
