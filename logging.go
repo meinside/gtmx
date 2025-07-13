@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/jessevdk/go-flags"
@@ -53,6 +54,11 @@ func printToStdoutColored(
 ) {
 	formatted := fmt.Sprintf(format, a...)
 
+	// NOTE: make sure to end with a new line
+	if !strings.HasSuffix(formatted, "\n") {
+		formatted += "\n"
+	}
+
 	if supportscolor.Stdout().SupportsColor { // if color is supported,
 		c := color.New(c)
 		_, _ = c.Fprint(_stdout.Writer(), formatted)
@@ -68,6 +74,11 @@ func printToStderrColored(
 	a ...any,
 ) {
 	formatted := fmt.Sprintf(format, a...)
+
+	// NOTE: make sure to end with a new line
+	if !strings.HasSuffix(formatted, "\n") {
+		formatted += "\n"
+	}
 
 	if supportscolor.Stdout().SupportsColor { // if color is supported,
 		c := color.New(c)

@@ -42,7 +42,7 @@ func main() {
 			os.Exit(
 				printErrorBeforeExit(
 					exit,
-					"Error: %s\n",
+					"Error: %s",
 					err,
 				),
 			)
@@ -55,9 +55,9 @@ func main() {
 			if e.Type != flags.ErrHelp {
 				helpExitCode = 1
 
-				printToStdoutColored(
+				printToStderrColored(
 					color.FgHiRed,
-					"Input error: %s\n",
+					"Input error: %s",
 					e.Error(),
 				)
 			}
@@ -73,7 +73,7 @@ func main() {
 		os.Exit(
 			printErrorBeforeExit(
 				1,
-				"Failed to parse flags: %s\n",
+				"Failed to parse flags: %s",
 				err,
 			),
 		)
@@ -83,7 +83,7 @@ func main() {
 	os.Exit(
 		printErrorBeforeExit(
 			1,
-			"Unhandled error.\n",
+			"Unhandled error.",
 		),
 	)
 }

@@ -26,7 +26,7 @@ func run(
 	} else if p.ListSessions {
 		return printSessionsAndExit(isVerbose)
 	} else if p.QuitCurrentSession {
-		return killCurrentSession(isVerbose)
+		return killCurrentSession()
 	}
 
 	// fallback with remaining arguments
@@ -144,13 +144,9 @@ func printSessionsAndExit(isVerbose bool) (code int, err error) {
 }
 
 // kill this session
-func killCurrentSession(isVerbose bool) (code int, err error) {
+func killCurrentSession() (code int, err error) {
 	if !tmux.IsInSession() {
-		printToStderrColored(
-			color.FgHiRed,
-			"* not in a tmux session\n",
-		)
-		return
+		return 1, fmt.Errorf("not in a tmux session")
 	}
 
 	session, err := tmux.GetCurrentSessionName()
@@ -160,19 +156,14 @@ func killCurrentSession(isVerbose bool) (code int, err error) {
 			return
 		}
 
-		printToStderrColored(
-			color.FgHiRed,
-			"* failed to kill session '%s': %s\n",
+		return 1, fmt.Errorf(
+			"failed to kill session '%s': %s",
 			session,
 			err,
 		)
-		return
-	}
-
-	if isVerbose {
-		printToStderrColored(
-			color.FgHiRed,
-			"* %s\n",
+	} else {
+		err = fmt.Errorf(
+			"failed to get current session for killing: %s",
 			err,
 		)
 	}
@@ -191,25 +182,15 @@ func runWithArgs(args []string, isVerbose bool) (exit int, err error) {
 	// if there is no session name given, take the default one
 	if sessionKey == "" {
 		if sessionKey, err = tmux.GetDefaultSessionKey(); err != nil {
-			printToStderrColored(
-				color.FgHiRed,
-				"* failed to get the default session key: %s\n",
+			return 1, fmt.Errorf(
+				"failed to get the default session key: %s",
 				err,
 			)
-			return 1, err
 		}
 	}
 
 	// configure and attach to given session name
 	if errs := tmux.ConfigureAndAttachToSession(sessionKey, isVerbose); len(errs) > 0 {
-		for _, err := range errs {
-			printToStderrColored(
-				color.FgHiRed,
-				"%s\n",
-				err,
-			)
-		}
-
 		return 1, errors.Join(errs...)
 	}
 
